@@ -1,0 +1,11 @@
+[Unit]
+Description=Run the Pi Gym backup every night
+
+[Timer]
+OnCalendar=*-*-* 03:45:00
+Persistent=true
+RandomizedDelaySec=10m
+Unit=pi-gym-backup.service
+
+[Install]
+WantedBy=timers.target
