@@ -204,6 +204,14 @@ export default function App() {
   const latest = weights.at(-1).value
   const change = (latest - weights[0].value).toFixed(1)
   const toggleTheme = () => { const next = theme === 'light' ? 'dark' : 'light'; setTheme(next); localStorage.setItem('pi-gym-theme', next) }
+
+  useEffect(() => {
+    const background = theme === 'dark' ? '#0f1218' : '#e9edf2'
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', background)
+    document.documentElement.style.backgroundColor = background
+    document.documentElement.style.colorScheme = theme
+  }, [theme])
+
   const updateGroups = (groups) => setWorkouts((current) => ({ ...current, [workoutKey]: groups }))
   const addGroup = () => updateGroups([...workout, { id: crypto.randomUUID(), name: 'New category', exercises: [] }])
   const reorderGroups = ({ active, over }) => {
@@ -297,14 +305,14 @@ export default function App() {
                 </div>
               </motion.section>
             ) : (
-              <DndContext sensors={groupSensors} collisionDetection={closestCenter} onDragEnd={reorderGroups}>
-                <SortableContext items={workout.map((item) => item.id)} strategy={rectSortingStrategy}>
-                  <motion.div className="workout-grid" key={workoutKey} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={pageTransition}>
+              <motion.div className="workout-grid" key={workoutKey} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={pageTransition}>
+                <DndContext sensors={groupSensors} collisionDetection={closestCenter} onDragEnd={reorderGroups}>
+                  <SortableContext items={workout.map((item) => item.id)} strategy={rectSortingStrategy}>
                     {workout.map((group, index) => <MuscleGroup key={group.id} group={group} index={index} editing={editing} onChange={(next) => updateGroups(workout.map((item) => item.id === next.id ? next : item))} onRemove={() => updateGroups(workout.filter((item) => item.id !== group.id))} confirmRemove={setPendingDelete} onPick={setNumberPicker} />)}
                     <AnimatePresence initial={false}>{editing && <motion.button className="add-group" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={editTransition} onClick={addGroup}><Plus /> Add category</motion.button>}</AnimatePresence>
-                  </motion.div>
-                </SortableContext>
-              </DndContext>
+                  </SortableContext>
+                </DndContext>
+              </motion.div>
             )}
           </AnimatePresence>
         </section>
