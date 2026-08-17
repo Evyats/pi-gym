@@ -64,3 +64,11 @@ def upsert_weight(connection: sqlite3.Connection, measured_date: date, value: fl
         (measured_date.isoformat(), value),
     )
     return BodyWeight(date=measured_date, value=value)
+
+
+def delete_weight(connection: sqlite3.Connection, measured_date: date) -> bool:
+    cursor = connection.execute(
+        "DELETE FROM body_weights WHERE measured_date = ?",
+        (measured_date.isoformat(),),
+    )
+    return cursor.rowcount > 0
