@@ -7,7 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import get_connection, initialize_database
-from .repository import read_weights, read_workout, replace_workout, upsert_weight
+from .repository import delete_weight, read_weights, read_workout, replace_workout, upsert_weight
 from .schemas import BodyWeight, BodyWeightCreate, GymState, MuscleGroup, WorkoutUpdate
 
 API_PREFIX = "/gym/api"
@@ -60,3 +60,10 @@ def update_workout(workout_id: Literal["A", "B"], payload: WorkoutUpdate) -> lis
 def save_weight(payload: BodyWeightCreate) -> BodyWeight:
     with get_connection() as connection:
         return upsert_weight(connection, payload.measured_date or date.today(), payload.value)
+
+
+@app.delete(f"{API_PREFIX}/weights/{{measured_date}}", status_code=204)
+def remove_weight(measured_date: date) -> None:
+    with get_connection() as connection:
+        if not delete_weight(connection, measured_date):
+            raise HTTPException(status_code=404, detail="Weight measurement not found")

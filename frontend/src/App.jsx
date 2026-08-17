@@ -6,7 +6,7 @@ import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, us
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { initialWeights, initialWorkouts } from './mockData'
-import { loadGymState, saveBodyWeight, saveWorkout } from './api'
+import { deleteBodyWeight, loadGymState, saveBodyWeight, saveWorkout } from './api'
 
 const spring = { type: 'spring', stiffness: 430, damping: 34 }
 const editTransition = { duration: .1, ease: 'easeOut' }
@@ -99,6 +99,9 @@ function MuscleGroup({ group, index, editing, onChange, onRemove, confirmRemove,
 }
 
 function WeightChart({ weights }) {
+  const [selectedDate, setSelectedDate] = useState(null)
+  if (!weights.length) return <div className="chart-empty">Add a measurement to start your graph.</div>
+
   const width = 640, height = 210, pad = 18
   const values = weights.map((item) => item.value)
   const min = Math.min(...values) - .25, max = Math.max(...values) + .25
@@ -116,13 +119,26 @@ function WeightChart({ weights }) {
     return `${path} C${controlOneX},${controlOneY} ${controlTwoX},${controlTwoY} ${point.x},${point.y}`
   }, '')
   const area = `${line} L${points.at(-1).x},${height} L${points[0].x},${height} Z`
+  const selectedPoint = points.find((point) => point.date === selectedDate)
+  const selectPoint = (point) => setSelectedDate((current) => current === point.date ? null : point.date)
   return (
     <div className="chart-wrap">
-      <svg viewBox={`0 0 ${width} ${height}`} role="img" aria-label={`Weight trend from ${weights[0].value} to ${weights.at(-1).value} kilograms`}>
+      <svg viewBox={`0 0 ${width} ${height}`} role="group" aria-label={`Weight trend from ${weights[0].value} to ${weights.at(-1).value} kilograms`}>
         <g className="chart-grid"><path d="M18 28H622M18 100H622M18 172H622" /></g>
         <motion.path className="chart-area" d={area} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .45 }} />
         <motion.path className="chart-line" d={line} initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: .65, ease: 'easeOut' }} />
-        {points.map((point, index) => <motion.circle key={`${point.date}-${index}`} className="chart-point" cx={point.x} cy={point.y} r="5" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: .2 + index * .045 }}><title>{displayDate(point.date)}: {point.value} kg</title></motion.circle>)}
+        {points.map((point, index) => (
+          <g key={point.date} className="chart-point-control" role="button" tabIndex="0" aria-label={`${displayDate(point.date)}: ${point.value} kilograms`} aria-pressed={selectedDate === point.date} onClick={() => selectPoint(point)} onKeyDown={(event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); selectPoint(point) } }}>
+            <circle className="chart-point-hit" cx={point.x} cy={point.y} r="22" />
+            <motion.circle className="chart-point" cx={point.x} cy={point.y} r="5" initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ delay: .2 + index * .045 }} />
+          </g>
+        ))}
+        {selectedPoint && (
+          <g className="chart-tooltip" transform={`translate(${Math.min(width - 82, Math.max(4, selectedPoint.x - 39))} ${selectedPoint.y < 48 ? selectedPoint.y + 14 : selectedPoint.y - 42})`}>
+            <rect width="78" height="30" />
+            <text x="39" y="19">{selectedPoint.value} kg</text>
+          </g>
+        )}
       </svg>
       <div className="chart-labels"><span>{displayDate(weights[0].date)}</span><span>{displayDate(weights[Math.floor(weights.length / 2)].date)}</span><span>{displayDate(weights.at(-1).date)}</span></div>
     </div>
@@ -201,8 +217,8 @@ export default function App() {
   const workout = isWeightTab ? [] : workouts[workoutKey]
   const exerciseCount = workout.reduce((sum, group) => sum + group.exercises.length, 0)
   const groupNames = workout.map((group) => group.name.toLowerCase()).join(' · ')
-  const latest = weights.at(-1).value
-  const change = (latest - weights[0].value).toFixed(1)
+  const latest = weights.at(-1)?.value ?? null
+  const change = weights.length > 1 ? (latest - weights[0].value).toFixed(1) : null
   const toggleTheme = () => { const next = theme === 'light' ? 'dark' : 'light'; setTheme(next); localStorage.setItem('pi-gym-theme', next) }
 
   useEffect(() => {
@@ -230,6 +246,25 @@ export default function App() {
       setSyncError(error.message)
     }
   }
+  const updateWeight = async (measuredDate, value) => {
+    try {
+      const saved = await saveBodyWeight(value, measuredDate)
+      setWeights((current) => current.map((item) => item.date === measuredDate ? saved : item))
+      setSyncError('')
+    } catch (error) {
+      setSyncError(`Could not update measurement: ${error.message}`)
+    }
+  }
+  const removeWeight = async (measuredDate) => {
+    try {
+      await deleteBodyWeight(measuredDate)
+      setWeights((current) => current.filter((item) => item.date !== measuredDate))
+      setSyncError('')
+    } catch (error) {
+      setSyncError(`Could not remove measurement: ${error.message}`)
+    }
+  }
+  const editWeight = (measurement) => setNumberPicker({ value: measurement.value, label: 'kg', title: 'Edit weight', subtitle: displayDate(measurement.date), config: { min: 30, max: 300, step: .1 }, onSave: (value) => updateWeight(measurement.date, value) })
   const openWeightEntry = () => {
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
@@ -285,7 +320,7 @@ export default function App() {
         <header className="app-header">
           <div><p className="eyebrow">Personal training log</p><h1>Keep showing up.</h1><p className="intro">Two workouts. Clear numbers. Your progress in one place.</p></div>
           <div className="header-actions">
-            <AnimatePresence initial={false}>{!isWeightTab && <motion.button className={`edit-button ${editing ? 'is-active' : ''}`} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={editTransition} onClick={() => setEditing((value) => !value)}>{editing ? <><Check /> Done</> : <><Pencil /> Edit</>}</motion.button>}</AnimatePresence>
+            <motion.button className={`edit-button ${editing ? 'is-active' : ''}`} onClick={() => setEditing((value) => !value)}>{editing ? <><Check /> Done</> : <><Pencil /> Edit</>}</motion.button>
             <IconButton label={`Use ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={toggleTheme}>{theme === 'light' ? <Moon /> : <Sun />}</IconButton>
           </div>
         </header>
@@ -293,16 +328,29 @@ export default function App() {
         <section className="workout-section">
           <div className="workout-nav">
             <div className="workout-tabs" role="tablist" aria-label="Training and weight sections">{['A', 'B', 'W'].map((key) => <button key={key} role="tab" aria-selected={workoutKey === key} className={workoutKey === key ? 'is-active' : ''} onClick={() => { setWorkoutKey(key); setEditing(false) }}><span>{key === 'W' ? 'Weight' : 'Workout'}</span> {key}</button>)}</div>
-            <p className="workout-meta"><strong>{isWeightTab ? `${weights.length} measurements` : `${exerciseCount} exercises`}</strong><span>{isWeightTab ? `${displayDate(weights[0].date)} · ${displayDate(weights.at(-1).date)}` : groupNames}</span></p>
+            <p className="workout-meta"><strong>{isWeightTab ? `${weights.length} measurements` : `${exerciseCount} exercises`}</strong><span>{isWeightTab ? (weights.length ? `${displayDate(weights[0].date)} · ${displayDate(weights.at(-1).date)}` : 'No measurements yet') : groupNames}</span></p>
           </div>
           <AnimatePresence mode="wait" initial={false}>
             {isWeightTab ? (
               <motion.section className="weight-section tab-weight-section" key="W" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={pageTransition}>
                 <header className="section-heading"><div><p className="eyebrow">Daily measure</p><h2>Weight progress</h2></div><button className="primary-button compact" onClick={openWeightEntry}><Plus /> Add weight</button></header>
                 <div className="weight-panel">
-                  <div className="weight-summary"><span>Latest</span><strong>{latest}<small> kg</small></strong><p><b>{change} kg</b> since {displayDate(weights[0].date)}</p></div>
+                  <div className="weight-summary"><span>Latest</span>{latest === null ? <strong>—</strong> : <><strong>{latest}<small> kg</small></strong><p>{change === null ? 'First measurement' : <><b>{change} kg</b> since {displayDate(weights[0].date)}</>}</p></>}</div>
                   <WeightChart weights={weights} />
                 </div>
+                <AnimatePresence initial={false}>
+                  {editing && (
+                    <motion.div className="weight-editor" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={editTransition}>
+                      {weights.length === 0 ? <p className="weight-editor-empty">No measurements to edit.</p> : [...weights].reverse().map((measurement) => (
+                        <div className="weight-editor-row" key={measurement.date}>
+                          <span>{displayDate(measurement.date)}</span>
+                          <button type="button" className="weight-value-button" onClick={() => editWeight(measurement)}>{measurement.value} kg</button>
+                          <IconButton label={`Remove ${displayDate(measurement.date)} measurement`} onClick={() => setPendingDelete({ name: `${displayDate(measurement.date)} · ${measurement.value} kg`, kind: 'measurement', action: () => removeWeight(measurement.date) })}><Trash2 /></IconButton>
+                        </div>
+                      ))}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.section>
             ) : (
               <motion.div className="workout-grid" key={workoutKey} initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={pageTransition}>

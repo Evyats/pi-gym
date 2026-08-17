@@ -45,6 +45,17 @@ class GymApiTests(unittest.TestCase):
         matches = [item for item in self.client.get("/gym/api/state").json()["weights"] if item["date"] == "2026-08-16"]
         self.assertEqual(matches, [{"date": "2026-08-16", "value": 77.1}])
 
+    def test_weight_can_be_deleted(self) -> None:
+        self.client.post("/gym/api/weights", json={"value": 77.4, "measured_date": "2026-08-16"})
+        response = self.client.delete("/gym/api/weights/2026-08-16")
+        self.assertEqual(response.status_code, 204)
+        dates = [item["date"] for item in self.client.get("/gym/api/state").json()["weights"]]
+        self.assertNotIn("2026-08-16", dates)
+
+    def test_deleting_missing_weight_returns_not_found(self) -> None:
+        response = self.client.delete("/gym/api/weights/1999-01-01")
+        self.assertEqual(response.status_code, 404)
+
 
 if __name__ == "__main__":
     unittest.main()
