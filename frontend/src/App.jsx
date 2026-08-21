@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { AlertTriangle, Check, GripVertical, Moon, Pencil, Plus, Sun, Trash2, X } from 'lucide-react'
+import { AlertTriangle, Check, GripVertical, Moon, Pencil, Plus, Sun, Trash2 } from 'lucide-react'
 import { WheelPicker, WheelPickerWrapper } from '@ncdai/react-wheel-picker'
 import { DndContext, KeyboardSensor, PointerSensor, closestCenter, useSensor, useSensors } from '@dnd-kit/core'
 import { SortableContext, arrayMove, rectSortingStrategy, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from '@dnd-kit/sortable'
@@ -10,7 +10,10 @@ import { deleteBodyWeight, loadGymState, saveBodyWeight, saveWorkout } from './a
 
 const spring = { type: 'spring', stiffness: 430, damping: 34 }
 const editTransition = { duration: .1, ease: 'easeOut' }
+const DAY_IN_MS = 24 * 60 * 60 * 1000
 const displayDate = (value) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`))
+const dateTimestamp = (value) => Date.parse(`${value}T00:00:00Z`)
+const daysBetween = (start, end) => Math.round((dateTimestamp(end) - dateTimestamp(start)) / DAY_IN_MS)
 const localIsoDate = (value) => {
   const year = value.getFullYear()
   const month = String(value.getMonth() + 1).padStart(2, '0')
@@ -103,9 +106,20 @@ function WeightChart({ weights }) {
   if (!weights.length) return <div className="chart-empty">Add a measurement to start your graph.</div>
 
   const width = 640, height = 210, pad = 18
-  const values = weights.map((item) => item.value)
+  const chronologicalWeights = [...weights].sort((a, b) => a.date.localeCompare(b.date))
+  const values = chronologicalWeights.map((item) => item.value)
   const min = Math.min(...values) - .25, max = Math.max(...values) + .25
-  const points = weights.map((item, index) => ({ ...item, x: pad + index * ((width - pad * 2) / Math.max(1, weights.length - 1)), y: pad + ((max - item.value) / (max - min)) * (height - pad * 2) }))
+  const firstDate = chronologicalWeights[0].date
+  const lastDate = chronologicalWeights.at(-1).date
+  const totalDays = daysBetween(firstDate, lastDate)
+  const pixelsPerDay = totalDays > 0 ? (width - pad * 2) / totalDays : 0
+  const points = chronologicalWeights.map((item) => ({
+    ...item,
+    x: totalDays === 0
+      ? width / 2
+      : pad + daysBetween(firstDate, item.date) * pixelsPerDay,
+    y: pad + ((max - item.value) / (max - min)) * (height - pad * 2),
+  }))
   const line = points.reduce((path, point, index) => {
     if (index === 0) return `M${point.x},${point.y}`
     const previous = points[index - 1]
@@ -123,7 +137,7 @@ function WeightChart({ weights }) {
   const selectPoint = (point) => setSelectedDate((current) => current === point.date ? null : point.date)
   return (
     <div className="chart-wrap">
-      <svg viewBox={`0 0 ${width} ${height}`} role="group" aria-label={`Weight trend from ${weights[0].value} to ${weights.at(-1).value} kilograms`}>
+      <svg viewBox={`0 0 ${width} ${height}`} role="group" aria-label={`Weight trend from ${chronologicalWeights[0].value} to ${chronologicalWeights.at(-1).value} kilograms`}>
         <g className="chart-grid"><path d="M18 28H622M18 100H622M18 172H622" /></g>
         <motion.path className="chart-area" d={area} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: .45 }} />
         <motion.path className="chart-line" d={line} initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: .65, ease: 'easeOut' }} />
@@ -134,28 +148,15 @@ function WeightChart({ weights }) {
           </g>
         ))}
         {selectedPoint && (
-          <g className="chart-tooltip" transform={`translate(${Math.min(width - 82, Math.max(4, selectedPoint.x - 39))} ${selectedPoint.y < 48 ? selectedPoint.y + 14 : selectedPoint.y - 42})`}>
-            <rect width="78" height="30" />
-            <text x="39" y="19">{selectedPoint.value} kg</text>
+          <g className="chart-tooltip" transform={`translate(${Math.min(width - 96, Math.max(4, selectedPoint.x - 46))} ${selectedPoint.y < 62 ? selectedPoint.y + 14 : selectedPoint.y - 54})`}>
+            <rect width="92" height="42" />
+            <text className="chart-tooltip-value" x="46" y="17">{selectedPoint.value} kg</text>
+            <text className="chart-tooltip-date" x="46" y="33">{displayDate(selectedPoint.date)}</text>
           </g>
         )}
       </svg>
-      <div className="chart-labels"><span>{displayDate(weights[0].date)}</span><span>{displayDate(weights[Math.floor(weights.length / 2)].date)}</span><span>{displayDate(weights.at(-1).date)}</span></div>
+      <div className="chart-labels"><span>{displayDate(firstDate)}</span>{chronologicalWeights.length > 1 && <><span>{displayDate(localIsoDate(new Date(dateTimestamp(firstDate) + totalDays * DAY_IN_MS / 2)))}</span><span>{displayDate(lastDate)}</span></>}</div>
     </div>
-  )
-}
-
-function WeightDialog({ onClose, onAdd }) {
-  const [value, setValue] = useState('')
-  const submit = (event) => { event.preventDefault(); if (Number(value) > 0) onAdd(Number(value)) }
-  return (
-    <motion.div className="dialog-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(e) => e.target === e.currentTarget && onClose()}>
-      <motion.form className="dialog" initial={{ opacity: 0, y: 24, scale: .98 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 16, scale: .98 }} transition={spring} onSubmit={submit}>
-        <header><div><p className="eyebrow">Daily measure</p><h2>Add weight</h2></div><IconButton label="Close" type="button" onClick={onClose}><X /></IconButton></header>
-        <label className="weight-field"><span>Weight</span><div><input autoFocus required type="number" min="30" max="300" step="0.1" value={value} onChange={(e) => setValue(e.target.value)} /><b>kg</b></div></label>
-        <button className="primary-button" type="submit">Save measurement</button>
-      </motion.form>
-    </motion.div>
   )
 }
 
@@ -176,7 +177,9 @@ function ConfirmDialog({ item, onClose }) {
 function NumberPickerSheet({ picker, onClose }) {
   const initialValue = picker.value ?? picker.exercise[picker.field]
   const [value, setValue] = useState(initialValue)
-  const config = picker.config ?? (picker.field === 'weight' ? { min: 1.25, max: 300, step: 1.25 } : picker.field === 'sets' ? { min: 1, max: 20, step: 1 } : { min: 1, max: 100, step: 1 })
+  const exerciseWeight = picker.field === 'weight' && !picker.config
+  const [weightStep, setWeightStep] = useState(1.25)
+  const config = picker.config ?? (picker.field === 'weight' ? { min: 0, max: 300, step: weightStep } : picker.field === 'sets' ? { min: 1, max: 20, step: 1 } : { min: 1, max: 100, step: 1 })
   const options = useMemo(() => {
     const values = Array.from({ length: Math.floor((config.max - config.min) / config.step) + 1 }, (_, index) => Number((config.min + index * config.step).toFixed(2)))
     if (!values.includes(initialValue)) values.push(initialValue)
@@ -189,6 +192,9 @@ function NumberPickerSheet({ picker, onClose }) {
       <motion.section className="picker-sheet" role="dialog" aria-modal="true" aria-labelledby="picker-title" initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }} transition={spring}>
         <div className="sheet-handle" aria-hidden="true" />
         <header><button className="sheet-action" type="button" onClick={onClose}>Cancel</button><div><small>{picker.subtitle ?? picker.exercise.name}</small><h2 id="picker-title">{picker.title ?? `Choose ${picker.label}`}</h2></div><button className="sheet-action save" type="button" onClick={save}>Save</button></header>
+        {exerciseWeight && <div className="picker-step-switch" role="group" aria-label="Weight increment">
+          {[1.25, 1].map((step) => <button key={step} type="button" aria-pressed={weightStep === step} className={weightStep === step ? 'is-active' : ''} onClick={() => setWeightStep(step)}>{step} kg</button>)}
+        </div>}
         <div className="wheel-stage">
           <WheelPickerWrapper className="number-wheel-wrapper">
             <WheelPicker options={options} value={value} onValueChange={setValue} visibleCount={20} optionItemHeight={48} dragSensitivity={1.4} scrollSensitivity={1.1} classNames={{ optionItem: 'wheel-option', highlightWrapper: 'wheel-highlight', highlightItem: 'wheel-highlight-item' }} />
@@ -209,7 +215,6 @@ export default function App() {
   const [editing, setEditing] = useState(false)
   const [workouts, setWorkouts] = useState(initialWorkouts)
   const [weights, setWeights] = useState(initialWeights)
-  const [weightOpen, setWeightOpen] = useState(false)
   const [pendingDelete, setPendingDelete] = useState(null)
   const [numberPicker, setNumberPicker] = useState(null)
   const [syncError, setSyncError] = useState('')
@@ -240,7 +245,6 @@ export default function App() {
     try {
       const saved = await saveBodyWeight(value)
       setWeights((current) => [...current.filter((item) => item.date !== saved.date), saved].sort((a, b) => a.date.localeCompare(b.date)))
-      setWeightOpen(false)
       setSyncError('')
     } catch (error) {
       setSyncError(error.message)
@@ -269,8 +273,13 @@ export default function App() {
     const yesterday = new Date()
     yesterday.setDate(yesterday.getDate() - 1)
     const previousWeight = weights.find((item) => item.date === localIsoDate(yesterday))?.value || 0
-    if (!previousWeight) { setWeightOpen(true); return }
-    setNumberPicker({ value: previousWeight, label: 'kg', title: 'Add weight', subtitle: `Yesterday · ${previousWeight} kg`, config: { min: 30, max: 300, step: .1 }, onSave: addWeight })
+    const initialWeight = previousWeight || latest || 70
+    const subtitle = previousWeight
+      ? `Yesterday · ${previousWeight} kg`
+      : latest
+        ? `Latest · ${latest} kg`
+        : 'New measurement'
+    setNumberPicker({ value: initialWeight, label: 'kg', title: 'Add weight', subtitle, config: { min: 30, max: 300, step: .1 }, onSave: addWeight })
   }
   const pageTransition = reduceMotion ? { duration: 0 } : spring
 
@@ -365,7 +374,6 @@ export default function App() {
           </AnimatePresence>
         </section>
       </main>
-      <AnimatePresence>{weightOpen && <WeightDialog onClose={() => setWeightOpen(false)} onAdd={addWeight} />}</AnimatePresence>
       <AnimatePresence>{pendingDelete && <ConfirmDialog item={pendingDelete} onClose={() => setPendingDelete(null)} />}</AnimatePresence>
       <AnimatePresence>{numberPicker && <NumberPickerSheet picker={numberPicker} onClose={closeNumberPicker} />}</AnimatePresence>
     </div>
