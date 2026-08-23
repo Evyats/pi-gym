@@ -82,10 +82,19 @@ npm run build
 
 Push `main`, then wait for the
 [GitHub Actions build](https://github.com/Evyats/pi-gym/actions) to turn green.
-On the Pi, deploy the ready-to-run `deploy` branch with:
+The Pi checks the successful `deploy` branch every five minutes and deploys
+new builds automatically. Manual deployment remains available with:
 
 ```bash
 sudo /opt/pi-gym/app/deploy.sh
+```
+
+The first deployment containing the timer must be run manually once. Inspect
+the automation with:
+
+```bash
+systemctl list-timers pi-gym-update.timer
+sudo journalctl -u pi-gym-update.service -n 50 --no-pager
 ```
 
 The app runs at `/gym/`, its backend listens only on `127.0.0.1:8002`, and its

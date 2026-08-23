@@ -1,0 +1,11 @@
+[Unit]
+Description=Check GitHub for a ready Pi Gym deployment
+
+[Timer]
+OnBootSec=3min
+OnUnitActiveSec=5min
+RandomizedDelaySec=30s
+Unit=pi-gym-update.service
+
+[Install]
+WantedBy=timers.target
