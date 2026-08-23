@@ -14,6 +14,10 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000
 const displayDate = (value) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`))
 const dateTimestamp = (value) => Date.parse(`${value}T00:00:00Z`)
 const daysBetween = (start, end) => Math.round((dateTimestamp(end) - dateTimestamp(start)) / DAY_IN_MS)
+const closestIncrementWeight = (weight, increment, min = 0, max = 300) => {
+  const snapped = Math.round((Number(weight) - min) / increment) * increment + min
+  return Math.min(max, Math.max(min, Number(snapped.toFixed(2))))
+}
 const localIsoDate = (value) => {
   const year = value.getFullYear()
   const month = String(value.getMonth() + 1).padStart(2, '0')
@@ -57,7 +61,7 @@ function ExerciseRow({ exercise, editing, onChange, onRemove, onPick }) {
           )}
         </AnimatePresence>
       </div>
-      <NumberStat exercise={exercise} field="weight" label="kg" onPick={(selection) => onPick({ ...selection, onSave: (value) => onChange({ ...exercise, weight: value }) })} />
+      <NumberStat exercise={exercise} field="weight" label="kg" onPick={(selection) => onPick({ ...selection, onSave: (value, weightIncrement) => onChange({ ...exercise, weight: value, weight_increment: weightIncrement }) })} />
       <NumberStat exercise={exercise} field="sets" label="sets" onPick={(selection) => onPick({ ...selection, onSave: (value) => onChange({ ...exercise, sets: value }) })} />
       <NumberStat exercise={exercise} field="reps" label="reps" onPick={(selection) => onPick({ ...selection, onSave: (value) => onChange({ ...exercise, reps: value }) })} />
       <AnimatePresence initial={false}>{editing && <motion.div className="row-action" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={editTransition}><IconButton label={`Remove ${exercise.name}`} onClick={onRemove}><Trash2 /></IconButton></motion.div>}</AnimatePresence>
@@ -69,7 +73,7 @@ function MuscleGroup({ group, index, editing, onChange, onRemove, confirmRemove,
   const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } = useSortable({ id: group.id, disabled: !editing })
   const exerciseSensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }))
   const setCount = group.exercises.reduce((sum, exercise) => sum + exercise.sets, 0)
-  const addExercise = () => onChange({ ...group, exercises: [...group.exercises, { id: crypto.randomUUID(), name: 'New exercise', weight: 0, sets: 3, reps: 10, notes: '' }] })
+  const addExercise = () => onChange({ ...group, exercises: [...group.exercises, { id: crypto.randomUUID(), name: 'New exercise', weight: 0, sets: 3, reps: 10, notes: '', weight_increment: 1.25 }] })
   const reorderExercises = ({ active, over }) => {
     if (!over || active.id === over.id) return
     const oldIndex = group.exercises.findIndex((item) => item.id === active.id)
@@ -175,17 +179,25 @@ function ConfirmDialog({ item, onClose }) {
 }
 
 function NumberPickerSheet({ picker, onClose }) {
-  const initialValue = picker.value ?? picker.exercise[picker.field]
-  const [value, setValue] = useState(initialValue)
   const exerciseWeight = picker.field === 'weight' && !picker.config
-  const [weightStep, setWeightStep] = useState(1.25)
+  const initialWeightStep = picker.exercise?.weight_increment ?? 1.25
+  const rawInitialValue = picker.value ?? picker.exercise[picker.field]
+  const initialValue = exerciseWeight
+    ? closestIncrementWeight(rawInitialValue, initialWeightStep)
+    : rawInitialValue
+  const [value, setValue] = useState(initialValue)
+  const [weightStep, setWeightStep] = useState(initialWeightStep)
   const config = picker.config ?? (picker.field === 'weight' ? { min: 0, max: 300, step: weightStep } : picker.field === 'sets' ? { min: 1, max: 20, step: 1 } : { min: 1, max: 100, step: 1 })
   const options = useMemo(() => {
     const values = Array.from({ length: Math.floor((config.max - config.min) / config.step) + 1 }, (_, index) => Number((config.min + index * config.step).toFixed(2)))
-    if (!values.includes(initialValue)) values.push(initialValue)
+    if (!exerciseWeight && !values.includes(initialValue)) values.push(initialValue)
     return values.sort((a, b) => a - b).map((number) => ({ value: number, label: number.toString() }))
-  }, [config.max, config.min, config.step, initialValue])
-  const save = () => { picker.onSave(value); onClose() }
+  }, [config.max, config.min, config.step, exerciseWeight, initialValue])
+  const changeWeightStep = (nextStep) => {
+    setValue((current) => closestIncrementWeight(current, nextStep))
+    setWeightStep(nextStep)
+  }
+  const save = () => { picker.onSave(value, exerciseWeight ? weightStep : undefined); onClose() }
 
   return (
     <motion.div className="sheet-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
@@ -193,7 +205,7 @@ function NumberPickerSheet({ picker, onClose }) {
         <div className="sheet-handle" aria-hidden="true" />
         <header><button className="sheet-action" type="button" onClick={onClose}>Cancel</button><div><small>{picker.subtitle ?? picker.exercise.name}</small><h2 id="picker-title">{picker.title ?? `Choose ${picker.label}`}</h2></div><button className="sheet-action save" type="button" onClick={save}>Save</button></header>
         {exerciseWeight && <div className="picker-step-switch" role="group" aria-label="Weight increment">
-          {[1.25, 1].map((step) => <button key={step} type="button" aria-pressed={weightStep === step} className={weightStep === step ? 'is-active' : ''} onClick={() => setWeightStep(step)}>{step} kg</button>)}
+          {[1.25, 1].map((step) => <button key={step} type="button" aria-pressed={weightStep === step} className={weightStep === step ? 'is-active' : ''} onClick={() => changeWeightStep(step)}>{step} kg</button>)}
         </div>}
         <div className="wheel-stage">
           <WheelPickerWrapper className="number-wheel-wrapper">

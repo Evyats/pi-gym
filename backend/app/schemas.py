@@ -11,6 +11,7 @@ class Exercise(BaseModel):
     sets: int = Field(ge=1, le=100)
     reps: int = Field(ge=1, le=1000)
     notes: str = Field(default="", max_length=2000)
+    weight_increment: Literal[1.0, 1.25] = 1.25
 
 
 class MuscleGroup(BaseModel):

@@ -13,7 +13,7 @@ def read_workout(connection: sqlite3.Connection, workout_id: str) -> list[Muscle
     for group_row in group_rows:
         exercise_rows = connection.execute(
             """
-            SELECT id, name, weight, sets, reps, notes
+            SELECT id, name, weight, sets, reps, notes, weight_increment
             FROM exercises WHERE muscle_group_id = ? ORDER BY sort_order, id
             """,
             (group_row["id"],),
@@ -38,11 +38,15 @@ def replace_workout(connection: sqlite3.Connection, workout_id: str, groups: lis
         connection.executemany(
             """
             INSERT INTO exercises
-                (id, muscle_group_id, name, weight, sets, reps, notes, sort_order)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+                (id, muscle_group_id, name, weight, sets, reps, notes, weight_increment, sort_order)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             [
-                (exercise.id, group.id, exercise.name, exercise.weight, exercise.sets, exercise.reps, exercise.notes, exercise_order)
+                (
+                    exercise.id, group.id, exercise.name, exercise.weight,
+                    exercise.sets, exercise.reps, exercise.notes,
+                    exercise.weight_increment, exercise_order,
+                )
                 for exercise_order, exercise in enumerate(group.exercises)
             ],
         )
