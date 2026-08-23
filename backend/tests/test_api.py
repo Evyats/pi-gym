@@ -37,6 +37,17 @@ class GymApiTests(unittest.TestCase):
         self.assertEqual([group["id"] for group in saved], [group["id"] for group in reversed_groups])
         self.assertEqual([item["id"] for item in saved[0]["exercises"]], [item["id"] for item in reversed_groups[0]["exercises"]])
 
+    def test_exercise_weight_increment_is_persisted(self) -> None:
+        state = self.client.get("/gym/api/state").json()
+        groups = state["workouts"]["A"]
+        groups[0]["exercises"][0]["weight_increment"] = 1
+
+        response = self.client.put("/gym/api/workouts/A", json={"groups": groups})
+
+        self.assertEqual(response.status_code, 200)
+        saved = self.client.get("/gym/api/state").json()["workouts"]["A"]
+        self.assertEqual(saved[0]["exercises"][0]["weight_increment"], 1)
+
     def test_weight_is_upserted_for_a_day(self) -> None:
         first = self.client.post("/gym/api/weights", json={"value": 77.4, "measured_date": "2026-08-16"})
         second = self.client.post("/gym/api/weights", json={"value": 77.1, "measured_date": "2026-08-16"})

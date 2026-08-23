@@ -48,6 +48,12 @@ def migrate(connection: sqlite3.Connection) -> None:
         );
         """
     )
+    exercise_columns = {row[1] for row in connection.execute("PRAGMA table_info(exercises)")}
+    if "weight_increment" not in exercise_columns:
+        connection.execute(
+            "ALTER TABLE exercises ADD COLUMN weight_increment REAL NOT NULL "
+            "DEFAULT 1.25 CHECK (weight_increment IN (1, 1.25))"
+        )
     if connection.execute("SELECT 1 FROM workouts LIMIT 1").fetchone() is None:
         seed_database(connection)
 
