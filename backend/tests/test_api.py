@@ -26,6 +26,7 @@ class GymApiTests(unittest.TestCase):
         state = response.json()
         self.assertEqual([group["name"] for group in state["workouts"]["A"]], ["Chest", "Shoulders", "Triceps"])
         self.assertGreater(len(state["weights"]), 0)
+        self.assertEqual(state["workout_days"], [])
 
     def test_replacing_workout_preserves_submitted_order(self) -> None:
         state = self.client.get("/gym/api/state").json()
@@ -66,6 +67,16 @@ class GymApiTests(unittest.TestCase):
     def test_deleting_missing_weight_returns_not_found(self) -> None:
         response = self.client.delete("/gym/api/weights/1999-01-01")
         self.assertEqual(response.status_code, 404)
+
+    def test_workout_day_can_be_marked_and_unmarked(self) -> None:
+        marked = self.client.put("/gym/api/workout-days/2026-08-17")
+        self.assertEqual(marked.status_code, 200)
+        self.assertEqual(marked.json(), "2026-08-17")
+        self.assertIn("2026-08-17", self.client.get("/gym/api/state").json()["workout_days"])
+
+        removed = self.client.delete("/gym/api/workout-days/2026-08-17")
+        self.assertEqual(removed.status_code, 204)
+        self.assertNotIn("2026-08-17", self.client.get("/gym/api/state").json()["workout_days"])
 
 
 if __name__ == "__main__":

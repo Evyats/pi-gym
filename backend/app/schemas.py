@@ -37,3 +37,4 @@ class BodyWeight(BaseModel):
 class GymState(BaseModel):
     workouts: dict[Literal["A", "B"], list[MuscleGroup]]
     weights: list[BodyWeight]
+    workout_days: list[date]

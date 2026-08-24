@@ -7,7 +7,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .database import get_connection, initialize_database
-from .repository import delete_weight, read_weights, read_workout, replace_workout, upsert_weight
+from .repository import (
+    add_workout_day,
+    delete_weight,
+    delete_workout_day,
+    read_weights,
+    read_workout,
+    read_workout_days,
+    replace_workout,
+    upsert_weight,
+)
 from .schemas import BodyWeight, BodyWeightCreate, GymState, MuscleGroup, WorkoutUpdate
 
 API_PREFIX = "/gym/api"
@@ -39,6 +48,7 @@ def get_state() -> GymState:
         return GymState(
             workouts={"A": read_workout(connection, "A"), "B": read_workout(connection, "B")},
             weights=read_weights(connection),
+            workout_days=read_workout_days(connection),
         )
 
 
@@ -67,3 +77,15 @@ def remove_weight(measured_date: date) -> None:
     with get_connection() as connection:
         if not delete_weight(connection, measured_date):
             raise HTTPException(status_code=404, detail="Weight measurement not found")
+
+
+@app.put(f"{API_PREFIX}/workout-days/{{workout_date}}", response_model=date)
+def mark_workout_day(workout_date: date) -> date:
+    with get_connection() as connection:
+        return add_workout_day(connection, workout_date)
+
+
+@app.delete(f"{API_PREFIX}/workout-days/{{workout_date}}", status_code=204)
+def unmark_workout_day(workout_date: date) -> None:
+    with get_connection() as connection:
+        delete_workout_day(connection, workout_date)

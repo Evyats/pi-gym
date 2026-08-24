@@ -76,3 +76,26 @@ def delete_weight(connection: sqlite3.Connection, measured_date: date) -> bool:
         (measured_date.isoformat(),),
     )
     return cursor.rowcount > 0
+
+
+def read_workout_days(connection: sqlite3.Connection) -> list[date]:
+    rows = connection.execute(
+        "SELECT workout_date FROM workout_days ORDER BY workout_date"
+    ).fetchall()
+    return [date.fromisoformat(row["workout_date"]) for row in rows]
+
+
+def add_workout_day(connection: sqlite3.Connection, workout_date: date) -> date:
+    connection.execute(
+        "INSERT OR IGNORE INTO workout_days (workout_date) VALUES (?)",
+        (workout_date.isoformat(),),
+    )
+    return workout_date
+
+
+def delete_workout_day(connection: sqlite3.Connection, workout_date: date) -> bool:
+    cursor = connection.execute(
+        "DELETE FROM workout_days WHERE workout_date = ?",
+        (workout_date.isoformat(),),
+    )
+    return cursor.rowcount > 0
