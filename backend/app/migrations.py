@@ -46,6 +46,10 @@ def migrate(connection: sqlite3.Connection) -> None:
             measured_date TEXT PRIMARY KEY,
             value REAL NOT NULL CHECK (value > 0)
         );
+
+        CREATE TABLE IF NOT EXISTS workout_days (
+            workout_date TEXT PRIMARY KEY
+        );
         """
     )
     exercise_columns = {row[1] for row in connection.execute("PRAGMA table_info(exercises)")}

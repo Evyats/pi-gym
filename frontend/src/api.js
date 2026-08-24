@@ -28,3 +28,11 @@ export function saveBodyWeight(value, measuredDate) {
 export function deleteBodyWeight(measuredDate) {
   return request(`/weights/${measuredDate}`, { method: 'DELETE' })
 }
+
+export function saveWorkoutDay(workoutDate) {
+  return request(`/workout-days/${workoutDate}`, { method: 'PUT' })
+}
+
+export function deleteWorkoutDay(workoutDate) {
+  return request(`/workout-days/${workoutDate}`, { method: 'DELETE' })
+}
