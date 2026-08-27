@@ -14,6 +14,14 @@ const DAY_IN_MS = 24 * 60 * 60 * 1000
 const displayDate = (value) => new Intl.DateTimeFormat('en', { month: 'short', day: 'numeric' }).format(new Date(`${value}T12:00:00`))
 const dateTimestamp = (value) => Date.parse(`${value}T00:00:00Z`)
 const daysBetween = (start, end) => Math.round((dateTimestamp(end) - dateTimestamp(start)) / DAY_IN_MS)
+const weightParts = (value) => {
+  const [whole, fraction = ''] = String(value).split('.')
+  return { whole, fraction }
+}
+function FormattedWeight({ value }) {
+  const { whole, fraction } = weightParts(value)
+  return <>{whole}{fraction && <span className="weight-decimal">.{fraction}</span>}</>
+}
 const closestIncrementWeight = (weight, increment, min = 0, max = 300) => {
   const snapped = Math.round((Number(weight) - min) / increment) * increment + min
   return Math.min(max, Math.max(min, Number(snapped.toFixed(2))))
@@ -121,7 +129,7 @@ function IconButton({ label, children, ...props }) {
 function NumberStat({ exercise, field, label, onPick }) {
   return (
     <button className={`exercise-stat ${field === 'weight' ? 'weight-stat' : ''}`} aria-label={`Change ${exercise.name} ${label}, currently ${exercise[field]}`} onClick={() => onPick({ exercise, field, label })}>
-      <strong>{exercise[field]}</strong><span>{label}</span>
+      <strong>{field === 'weight' ? <FormattedWeight value={exercise[field]} /> : exercise[field]}</strong><span>{label}</span>
     </button>
   )
 }
@@ -243,7 +251,7 @@ function WeightChart({ weights }) {
         {selectedPoint && (
           <g className="chart-tooltip" transform={`translate(${Math.min(width - 96, Math.max(4, selectedPoint.x - 46))} ${selectedPoint.y < 62 ? selectedPoint.y + 14 : selectedPoint.y - 54})`}>
             <rect width="92" height="42" />
-            <text className="chart-tooltip-value" x="46" y="17">{selectedPoint.value} kg</text>
+            <text className="chart-tooltip-value" x="46" y="17"><tspan>{weightParts(selectedPoint.value).whole}</tspan>{weightParts(selectedPoint.value).fraction && <tspan className="chart-weight-decimal">.{weightParts(selectedPoint.value).fraction}</tspan>}<tspan> kg</tspan></text>
             <text className="chart-tooltip-date" x="46" y="33">{displayDate(selectedPoint.date)}</text>
           </g>
         )}
@@ -256,7 +264,8 @@ function WeightChart({ weights }) {
 function WorkoutCalendar({ workoutDays, editing, onToggle }) {
   const now = new Date()
   const earliestMonth = new Date(2026, 0, 1)
-  const [month, setMonth] = useState(() => new Date(now.getFullYear(), now.getMonth(), 1))
+  const currentMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+  const [month, setMonth] = useState(() => currentMonth)
   const year = month.getFullYear()
   const monthIndex = month.getMonth()
   const leadingBlanks = month.getDay()
@@ -273,21 +282,19 @@ function WorkoutCalendar({ workoutDays, editing, onToggle }) {
     return day >= 1 && day <= daysInMonth ? day : null
   })
   const canGoPrevious = month.getTime() > earliestMonth.getTime()
+  const canGoNext = month.getTime() < currentMonth.getTime()
   const moveMonth = (amount) => {
     const next = new Date(year, monthIndex + amount, 1)
-    setMonth(next < earliestMonth ? earliestMonth : next)
+    setMonth(next < earliestMonth ? earliestMonth : next > currentMonth ? currentMonth : next)
   }
 
   return (
     <section className="calendar-view" aria-label="Workout calendar">
-      <header className="section-heading">
-        <div><p className="eyebrow">Training history</p><h2>Calendar</h2></div>
-        {!editing && (
-          <button className="primary-button compact" type="button" aria-pressed={todayIsMarked} onClick={() => onToggle(today)}>
-            <Check aria-hidden="true" />
-            {todayIsMarked ? 'Unmark today' : 'Mark today'}
-          </button>
-        )}
+      <header className="section-heading action-only">
+        <button className="primary-button compact" type="button" aria-pressed={todayIsMarked} onClick={() => onToggle(today)}>
+          <Check aria-hidden="true" />
+          {todayIsMarked ? 'Unmark today' : 'Mark today'}
+        </button>
       </header>
       <div className="calendar-panel">
         <div className="calendar-panel-toolbar">
@@ -299,7 +306,7 @@ function WorkoutCalendar({ workoutDays, editing, onToggle }) {
             <div className="calendar-navigation">
               <IconButton label="Previous month" disabled={!canGoPrevious} onClick={() => moveMonth(-1)}><ChevronLeft /></IconButton>
               <button type="button" onClick={() => setMonth(new Date(now.getFullYear(), now.getMonth(), 1))}>Today</button>
-              <IconButton label="Next month" onClick={() => moveMonth(1)}><ChevronRight /></IconButton>
+              <IconButton label="Next month" disabled={!canGoNext} onClick={() => moveMonth(1)}><ChevronRight /></IconButton>
             </div>
           </div>
         </div>
@@ -310,15 +317,16 @@ function WorkoutCalendar({ workoutDays, editing, onToggle }) {
             if (day === null) return <span className="calendar-empty-day" aria-hidden="true" key={`empty-${index}`} />
             const value = localIsoDate(new Date(year, monthIndex, day))
             const isMarked = marked.has(value)
+            const isFuture = value > today
             const label = new Intl.DateTimeFormat('en', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(year, monthIndex, day))
             return (
               <button
                 type="button"
-                className={`calendar-day ${isMarked ? 'is-marked' : ''} ${value === today ? 'is-today' : ''}`}
+                className={`calendar-day ${isMarked ? 'is-marked' : ''} ${value === today ? 'is-today' : ''} ${isFuture ? 'is-future' : ''}`}
                 key={value}
-                disabled={!editing}
+                disabled={!editing || isFuture}
                 aria-pressed={isMarked}
-                aria-label={`${label}${isMarked ? ', workout completed' : ''}`}
+                aria-label={`${label}${isFuture ? ', future date' : ''}${isMarked ? ', workout completed' : ''}`}
                 onClick={() => onToggle(value)}
               >
                 <span>{day}</span>
@@ -569,9 +577,9 @@ export default function App() {
               </motion.div>
             ) : isWeightTab ? (
               <motion.section className="weight-section tab-weight-section" key="W" initial={{ opacity: 0, x: 16 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -12 }} transition={pageTransition}>
-                <header className="section-heading"><div><p className="eyebrow">Daily measure</p><h2>Weight progress</h2></div><button className="primary-button compact" onClick={openWeightEntry}><Plus /> Add weight</button></header>
+                <header className="section-heading action-only"><button className="primary-button compact" onClick={openWeightEntry}><Plus /> Add weight</button></header>
                 <div className="weight-panel">
-                  <div className="weight-summary"><span>Latest</span>{latest === null ? <strong>—</strong> : <><strong>{latest}<small> kg</small></strong><p>{change === null ? 'First measurement' : <><b>{change} kg</b> since {displayDate(weights[0].date)}</>}</p></>}</div>
+                  <div className="weight-summary"><span>Latest</span>{latest === null ? <strong>—</strong> : <><strong><FormattedWeight value={latest} /><small> kg</small></strong><p>{change === null ? 'First measurement' : <><b><FormattedWeight value={change} /> kg</b> since {displayDate(weights[0].date)}</>}</p></>}</div>
                   <WeightChart weights={weights} />
                 </div>
                 <AnimatePresence initial={false}>
@@ -580,7 +588,7 @@ export default function App() {
                       {weights.length === 0 ? <p className="weight-editor-empty">No measurements to edit.</p> : [...weights].reverse().map((measurement) => (
                         <div className="weight-editor-row" key={measurement.date}>
                           <span>{displayDate(measurement.date)}</span>
-                          <button type="button" className="weight-value-button" onClick={() => editWeight(measurement)}>{measurement.value} kg</button>
+                          <button type="button" className="weight-value-button" onClick={() => editWeight(measurement)}><FormattedWeight value={measurement.value} /> kg</button>
                           <IconButton label={`Remove ${displayDate(measurement.date)} measurement`} onClick={() => setPendingDelete({ name: `${displayDate(measurement.date)} · ${measurement.value} kg`, kind: 'measurement', action: () => removeWeight(measurement.date) })}><Trash2 /></IconButton>
                         </div>
                       ))}
