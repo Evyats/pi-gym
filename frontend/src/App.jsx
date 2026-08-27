@@ -20,7 +20,7 @@ const weightParts = (value) => {
 }
 function FormattedWeight({ value }) {
   const { whole, fraction } = weightParts(value)
-  return <>{whole}{fraction && <span className="weight-decimal">.{fraction}</span>}</>
+  return <span className="formatted-weight" aria-label={String(value)}><span aria-hidden="true">{whole}</span>{fraction && <span className="weight-decimal" aria-hidden="true">{fraction}</span>}</span>
 }
 const closestIncrementWeight = (weight, increment, min = 0, max = 300) => {
   const snapped = Math.round((Number(weight) - min) / increment) * increment + min
@@ -251,7 +251,7 @@ function WeightChart({ weights }) {
         {selectedPoint && (
           <g className="chart-tooltip" transform={`translate(${Math.min(width - 96, Math.max(4, selectedPoint.x - 46))} ${selectedPoint.y < 62 ? selectedPoint.y + 14 : selectedPoint.y - 54})`}>
             <rect width="92" height="42" />
-            <text className="chart-tooltip-value" x="46" y="17"><tspan>{weightParts(selectedPoint.value).whole}</tspan>{weightParts(selectedPoint.value).fraction && <tspan className="chart-weight-decimal">.{weightParts(selectedPoint.value).fraction}</tspan>}<tspan> kg</tspan></text>
+            <text className="chart-tooltip-value" x="46" y="17"><tspan>{weightParts(selectedPoint.value).whole}</tspan>{weightParts(selectedPoint.value).fraction && <tspan className="chart-weight-decimal">{weightParts(selectedPoint.value).fraction}</tspan>}<tspan> kg</tspan></text>
             <text className="chart-tooltip-date" x="46" y="33">{displayDate(selectedPoint.date)}</text>
           </g>
         )}
