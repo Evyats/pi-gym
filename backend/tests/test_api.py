@@ -41,13 +41,13 @@ class GymApiTests(unittest.TestCase):
     def test_exercise_weight_increment_is_persisted(self) -> None:
         state = self.client.get("/gym/api/state").json()
         groups = state["workouts"]["A"]
-        groups[0]["exercises"][0]["weight_increment"] = 1
+        groups[0]["exercises"][0]["weight_increment"] = 2
 
         response = self.client.put("/gym/api/workouts/A", json={"groups": groups})
 
         self.assertEqual(response.status_code, 200)
         saved = self.client.get("/gym/api/state").json()["workouts"]["A"]
-        self.assertEqual(saved[0]["exercises"][0]["weight_increment"], 1)
+        self.assertEqual(saved[0]["exercises"][0]["weight_increment"], 2)
 
     def test_weight_is_upserted_for_a_day(self) -> None:
         first = self.client.post("/gym/api/weights", json={"value": 77.4, "measured_date": "2026-08-16"})

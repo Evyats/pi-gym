@@ -56,10 +56,42 @@ def migrate(connection: sqlite3.Connection) -> None:
     if "weight_increment" not in exercise_columns:
         connection.execute(
             "ALTER TABLE exercises ADD COLUMN weight_increment REAL NOT NULL "
-            "DEFAULT 1.25 CHECK (weight_increment IN (1, 1.25))"
+            "DEFAULT 1.25 CHECK (weight_increment IN (1, 1.25, 2))"
         )
+    _widen_weight_increment_check(connection)
     if connection.execute("SELECT 1 FROM workouts LIMIT 1").fetchone() is None:
         seed_database(connection)
+
+
+def _widen_weight_increment_check(connection: sqlite3.Connection) -> None:
+    schema = connection.execute(
+        "SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'exercises'"
+    ).fetchone()
+    if schema is None or "weight_increment IN (1, 1.25, 2)" in schema[0]:
+        return
+    connection.executescript(
+        """
+        ALTER TABLE exercises RENAME TO exercises_before_2kg;
+
+        CREATE TABLE exercises (
+            id TEXT PRIMARY KEY,
+            muscle_group_id TEXT NOT NULL REFERENCES muscle_groups(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            weight REAL NOT NULL DEFAULT 0,
+            sets INTEGER NOT NULL,
+            reps INTEGER NOT NULL,
+            notes TEXT NOT NULL DEFAULT '',
+            sort_order INTEGER NOT NULL,
+            weight_increment REAL NOT NULL DEFAULT 1.25 CHECK (weight_increment IN (1, 1.25, 2))
+        );
+
+        INSERT INTO exercises (id, muscle_group_id, name, weight, sets, reps, notes, sort_order, weight_increment)
+        SELECT id, muscle_group_id, name, weight, sets, reps, notes, sort_order, weight_increment
+        FROM exercises_before_2kg;
+
+        DROP TABLE exercises_before_2kg;
+        """
+    )
 
 
 def seed_database(connection: sqlite3.Connection) -> None:
