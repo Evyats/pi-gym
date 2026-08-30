@@ -382,7 +382,7 @@ function NumberPickerSheet({ picker, onClose }) {
         <div className="sheet-handle" aria-hidden="true" />
         <header><button className="sheet-action" type="button" onClick={onClose}>Cancel</button><div><small>{picker.subtitle ?? picker.exercise.name}</small><h2 id="picker-title">{picker.title ?? `Choose ${picker.label}`}</h2></div><button className="sheet-action save" type="button" onClick={save}>Save</button></header>
         {exerciseWeight && <div className="picker-step-switch" role="group" aria-label="Weight increment">
-          {[1.25, 1].map((step) => <button key={step} type="button" aria-pressed={weightStep === step} className={weightStep === step ? 'is-active' : ''} onClick={() => changeWeightStep(step)}>{step} kg</button>)}
+          {[1.25, 2].map((step) => <button key={step} type="button" aria-pressed={weightStep === step} className={weightStep === step ? 'is-active' : ''} onClick={() => changeWeightStep(step)}>{step} kg</button>)}
         </div>}
         <div className="wheel-stage">
           <WheelPickerWrapper className="number-wheel-wrapper">
