@@ -22,9 +22,22 @@ function FormattedWeight({ value }) {
   const { whole, fraction } = weightParts(value)
   return <span className="formatted-weight" aria-label={String(value)}><span aria-hidden="true">{whole}</span>{fraction && <span className="weight-decimal" aria-hidden="true">{fraction}</span>}</span>
 }
-const closestIncrementWeight = (weight, increment, min = 0, max = 300) => {
-  const snapped = Math.round((Number(weight) - min) / increment) * increment + min
-  return Math.min(max, Math.max(min, Number(snapped.toFixed(2))))
+const weightStepValues = (step, min = 0, max = 300) => {
+  if (step === 2) {
+    const lowEnd = Math.min(10, max)
+    const values = []
+    for (let value = min; value <= lowEnd; value += 1) values.push(value)
+    for (let value = lowEnd + 2; value <= max; value += 2) values.push(value)
+    return values
+  }
+  const count = Math.floor((max - min) / step) + 1
+  return Array.from({ length: count }, (_, index) => Number((min + index * step).toFixed(2)))
+}
+const closestWeightForStep = (weight, step, min = 0, max = 300) => {
+  const clamped = Math.min(max, Math.max(min, Number(weight)))
+  return weightStepValues(step, min, max).reduce(
+    (closest, value) => Math.abs(value - clamped) < Math.abs(closest - clamped) ? value : closest,
+  )
 }
 const localIsoDate = (value) => {
   const year = value.getFullYear()
@@ -355,23 +368,77 @@ function ConfirmDialog({ item, onClose }) {
   )
 }
 
+function PlateIcon(props) {
+  return (
+    <svg viewBox="0 0 360 360" width="20" height="20" aria-hidden="true" {...props}>
+      <g transform="translate(0,360) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+        <path d="M1635 3594 c-270 -32 -500 -104 -716 -226 -145 -82 -264 -173 -390
+-298 -273 -272 -439 -597 -511 -1000 -17 -100 -17 -440 0 -540 55 -306 169
+-577 340 -806 85 -114 252 -281 366 -366 230 -171 501 -286 806 -339 99 -18
+441 -18 540 0 305 54 578 168 806 339 115 86 283 253 366 366 425 571 474
+1340 126 1957 -157 279 -403 526 -676 681 -286 162 -587 240 -907 236 -66 0
+-133 -3 -150 -4z m1008 -526 c120 -83 285 -239 373 -353 171 -221 294 -550
+294 -788 0 -80 -15 -115 -67 -154 -109 -84 -330 26 -600 299 -113 113 -113
+113 -153 220 -68 181 -85 264 -84 418 1 148 9 185 66 273 32 50 99 107 125
+107 8 0 29 -10 46 -22z m-1537 -9 c127 -61 138 -323 30 -697 -34 -115 -40
+-129 -98 -200 -135 -165 -277 -283 -410 -340 -87 -36 -228 -39 -302 -4 l-49
+22 7 83 c37 445 273 864 625 1106 86 59 126 65 197 30z m846 -921 c79 -36 142
+-98 181 -177 29 -60 32 -74 32 -161 0 -87 -3 -101 -32 -161 -39 -79 -102 -140
+-181 -177 -49 -23 -70 -27 -152 -27 -82 0 -103 4 -152 27 -79 37 -142 98 -181
+177 -29 60 -32 74 -32 161 0 82 4 103 26 151 47 99 128 171 232 205 67 22 190
+13 259 -18z m-51 -1184 c215 -37 402 -118 504 -219 74 -73 108 -139 113 -221
+l4 -61 -98 -40 c-253 -104 -428 -138 -679 -130 -231 8 -358 37 -548 125 -93
+43 -98 47 -123 98 -21 42 -25 61 -19 93 22 130 226 250 585 345 113 30 138 31
+261 10z"/>
+      </g>
+    </svg>
+  )
+}
+
+function DumbbellIcon(props) {
+  return (
+    <svg viewBox="78 78 291 291" width="20" height="20" aria-hidden="true" {...props}>
+      <g transform="translate(0,447) scale(0.1,-0.1)" fill="currentColor" stroke="none">
+        <path d="M2580 3677 c-14 -8 -96 -84 -182 -170 -154 -154 -158 -158 -158 -200
+l0 -42 513 -513 c494 -494 513 -512 550 -512 43 0 49 5 245 201 131 131 150
+158 138 202 -4 19 -989 1014 -1027 1038 -20 13 -50 11 -79 -4z"/>
+        <path d="M2996 3590 l-71 -69 297 -298 298 -298 65 65 c68 67 81 93 71 134 -5
+21 -413 440 -498 511 -51 43 -81 35 -162 -45z"/>
+        <path d="M2068 2402 c-252 -252 -458 -462 -458 -468 0 -11 312 -324 323 -324
+11 0 927 916 927 927 0 12 -313 323 -325 323 -6 0 -216 -206 -467 -458z"/>
+        <path d="M956 2064 c-91 -92 -169 -177 -172 -190 -3 -13 -4 -34 0 -46 5 -22
+995 -1021 1031 -1040 42 -24 80 -1 215 135 196 196 200 201 200 245 0 36 -18
+55 -513 550 -511 511 -512 512 -553 512 -41 0 -47 -5 -208 -166z"/>
+        <path d="M882 1477 c-68 -69 -85 -111 -60 -149 31 -47 501 -508 524 -514 41
+-10 67 3 134 71 l65 65 -295 295 c-162 162 -297 295 -300 295 -3 0 -33 -28
+-68 -63z"/>
+      </g>
+    </svg>
+  )
+}
+
 function NumberPickerSheet({ picker, onClose }) {
   const exerciseWeight = picker.field === 'weight' && !picker.config
   const initialWeightStep = picker.exercise?.weight_increment ?? 1.25
   const rawInitialValue = picker.value ?? picker.exercise[picker.field]
   const initialValue = exerciseWeight
-    ? closestIncrementWeight(rawInitialValue, initialWeightStep)
+    ? closestWeightForStep(rawInitialValue, initialWeightStep)
     : rawInitialValue
   const [value, setValue] = useState(initialValue)
   const [weightStep, setWeightStep] = useState(initialWeightStep)
   const config = picker.config ?? (picker.field === 'weight' ? { min: 0, max: 300, step: weightStep } : picker.field === 'sets' ? { min: 1, max: 20, step: 1 } : { min: 1, max: 100, step: 1 })
   const options = useMemo(() => {
-    const values = Array.from({ length: Math.floor((config.max - config.min) / config.step) + 1 }, (_, index) => Number((config.min + index * config.step).toFixed(2)))
-    if (!exerciseWeight && !values.includes(initialValue)) values.push(initialValue)
+    let values
+    if (exerciseWeight) {
+      values = weightStepValues(weightStep, config.min, config.max)
+    } else {
+      values = Array.from({ length: Math.floor((config.max - config.min) / config.step) + 1 }, (_, index) => Number((config.min + index * config.step).toFixed(2)))
+      if (!values.includes(initialValue)) values.push(initialValue)
+    }
     return values.sort((a, b) => a - b).map((number) => ({ value: number, label: number.toString() }))
-  }, [config.max, config.min, config.step, exerciseWeight, initialValue])
+  }, [config.max, config.min, config.step, exerciseWeight, initialValue, weightStep])
   const changeWeightStep = (nextStep) => {
-    setValue((current) => closestIncrementWeight(current, nextStep))
+    setValue((current) => closestWeightForStep(current, nextStep))
     setWeightStep(nextStep)
   }
   const save = () => { picker.onSave(value, exerciseWeight ? weightStep : undefined); onClose() }
@@ -382,7 +449,8 @@ function NumberPickerSheet({ picker, onClose }) {
         <div className="sheet-handle" aria-hidden="true" />
         <header><button className="sheet-action" type="button" onClick={onClose}>Cancel</button><div><small>{picker.subtitle ?? picker.exercise.name}</small><h2 id="picker-title">{picker.title ?? `Choose ${picker.label}`}</h2></div><button className="sheet-action save" type="button" onClick={save}>Save</button></header>
         {exerciseWeight && <div className="picker-step-switch" role="group" aria-label="Weight increment">
-          {[1.25, 2].map((step) => <button key={step} type="button" aria-pressed={weightStep === step} className={weightStep === step ? 'is-active' : ''} onClick={() => changeWeightStep(step)}>{step} kg</button>)}
+          <button type="button" aria-pressed={weightStep === 1.25} aria-label="1.25 kg increments" title="1.25 kg increments" className={weightStep === 1.25 ? 'is-active' : ''} onClick={() => changeWeightStep(1.25)}><PlateIcon /></button>
+          <button type="button" aria-pressed={weightStep === 2} aria-label="2 kg increments" title="2 kg increments" className={weightStep === 2 ? 'is-active' : ''} onClick={() => changeWeightStep(2)}><DumbbellIcon /></button>
         </div>}
         <div className="wheel-stage">
           <WheelPickerWrapper className="number-wheel-wrapper">

@@ -199,7 +199,7 @@ h1 { margin:0; font-size:clamp(48px,8vw,78px); line-height:.92; letter-spacing:-
 .sheet-action { min-height:44px; border:0; color:var(--muted); background:transparent; font-weight:700; }
 .sheet-action.save { color:var(--accent); }
 .picker-step-switch { width:min(100%,300px); display:grid; grid-template-columns:1fr 1fr; gap:6px; margin:4px auto 8px; padding:4px; border:1px solid var(--line); background:var(--surface-2); }
-.picker-step-switch button { min-height:44px; border:0; color:var(--muted); background:transparent; font-weight:700; }
+.picker-step-switch button { display:grid; min-height:44px; place-items:center; border:0; color:var(--muted); background:transparent; font-weight:700; }
 .picker-step-switch button.is-active { color:var(--accent-text); background:var(--accent); }
 .wheel-stage { position:relative; width:min(100%,300px); margin:0 auto; }
 .number-wheel-wrapper { width:100%; }
