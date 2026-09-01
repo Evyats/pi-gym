@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#edf0e8">
+  <title>Pi Gym — Design Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@400;500;600;700&family=Chivo:wght@400;500;600;700;800&family=Saira+Condensed:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="concepts.css">
+</head>
+<body data-concept="calibration" data-view="a">
+  <!--
+  THESIS: A personal workout is a live instrument, not a dashboard of generic fitness cards.
+  OWN-WORLD: Three complete systems—precision calibration plate, coach’s field card, and cathode instrument—share product truth but no cosmetic grammar.
+  STORY: Choose a routine, scan the next movement, adjust its numbers directly, and review weight or attendance without leaving the same operational surface.
+  FIRST VIEWPORT: The current workout and its editable measurements dominate; navigation and progress remain compact support.
+  FORM: Assigned grounded direction 4, seed c214baea, presented with one grounded pick and one competitive challenger for user selection.
+  FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+  -->
+  <svg class="icon-sprite" aria-hidden="true">
+    <symbol id="icon-grip" viewBox="0 0 20 20"><circle cx="6" cy="5" r="1.4"/><circle cx="14" cy="5" r="1.4"/><circle cx="6" cy="10" r="1.4"/><circle cx="14" cy="10" r="1.4"/><circle cx="6" cy="15" r="1.4"/><circle cx="14" cy="15" r="1.4"/></symbol>
+    <symbol id="icon-close" viewBox="0 0 20 20"><path d="m5 5 10 10M15 5 5 15"/></symbol>
+    <symbol id="icon-left" viewBox="0 0 20 20"><path d="m12 4-6 6 6 6"/></symbol>
+    <symbol id="icon-right" viewBox="0 0 20 20"><path d="m8 4 6 6-6 6"/></symbol>
+  </svg>
+
+  <aside class="concept-dock" aria-label="Choose a design concept">
+    <span class="concept-dock__label">Design prototypes</span>
+    <div class="concept-dock__options">
+      <button type="button" data-set-concept="calibration" aria-pressed="true"><b>01</b><span>Calibration</span></button>
+      <button type="button" data-set-concept="field"><b>02</b><span>Field card</span></button>
+      <button type="button" data-set-concept="cathode"><b>03</b><span>Cathode</span></button>
+    </div>
+  </aside>
+
+  <div class="app-shell">
+    <header class="app-header">
+      <a class="brand" href="#" aria-label="Pi Gym home">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span class="brand-copy"><small>Personal training log</small><strong>Keep showing up.</strong></span>
+      </a>
+      <div class="header-status" aria-label="Current streak"><strong>6</strong><span>sessions<br>this month</span></div>
+      <button class="edit-toggle" type="button" aria-pressed="false">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4l11-11-4-4L4 16v4Zm9.5-13.5 4 4M13 20h7"/></svg>
+        <span>Edit plan</span>
+      </button>
+    </header>
+
+    <nav class="area-tabs" aria-label="Gym sections">
+      <button type="button" data-view-target="a" aria-current="page"><b data-ghost="A">A</b><span>Push</span></button>
+      <button type="button" data-view-target="b"><b data-ghost="B">B</b><span>Pull</span></button>
+      <button type="button" data-view-target="weight"><b data-ghost="W">W</b><span>Weight</span></button>
+      <button type="button" data-view-target="calendar"><b data-ghost="C">C</b><span>Calendar</span></button>
+    </nav>
+
+    <main>
+      <section class="view-panel workout-panel is-active" data-panel="a" aria-labelledby="workout-a-title">
+        <div class="workout-lead">
+          <div>
+            <p class="context-line">Saturday · Workout A</p>
+            <h1 id="workout-a-title">Push strength</h1>
+            <p>Chest, shoulders, and triceps. Numbers are ready to adjust between sets.</p>
+          </div>
+          <div class="session-progress" aria-label="Workout progress">
+            <span><b>3</b> of 7 exercises</span>
+            <div><i style="--progress:43%"></i></div>
+          </div>
+        </div>
+
+        <div class="group-grid">
+          <article class="muscle-group">
+            <header><button class="drag-control" type="button" aria-label="Move Chest group"><svg><use href="#icon-grip"/></svg></button><div><span>Chest</span><small>10 working sets</small></div><button class="remove-control" type="button" aria-label="Remove Chest"><svg><use href="#icon-close"/></svg></button></header>
+            <div class="exercise-list">
+              <div class="exercise-row is-complete">
+                <button class="complete-control" type="button" aria-label="Mark Bench press incomplete"><i></i></button>
+                <div class="exercise-copy"><strong>Bench press</strong><small>Pause on chest · controlled drive</small></div>
+                <button class="measure" data-step="1.25"><strong>80</strong><small>kg</small></button>
+                <button class="measure" data-step="1"><strong>4</strong><small>sets</small></button>
+                <button class="measure" data-step="1"><strong>8</strong><small>reps</small></button>
+                <button class="drag-control row-drag" type="button" aria-label="Move Bench press"><svg><use href="#icon-grip"/></svg></button>
+              </div>
+              <div class="exercise-row">
+                <button class="complete-control" type="button" aria-label="Mark Incline dumbbell press complete"><i></i></button>
+                <div class="exercise-copy"><strong>Incline dumbbell press</strong><small>30° bench · keep shoulders packed</small></div>
+                <button class="measure" data-step="1.25"><strong>27.5</strong><small>kg</small></button>
+                <button class="measure" data-step="1"><strong>3</strong><small>sets</small></button>
+                <button class="measure" data-step="1"><strong>10</strong><small>reps</small></button>
+                <button class="drag-control row-drag" type="button" aria-label="Move Incline dumbbell press"><svg><use href="#icon-grip"/></svg></button>
+              </div>
+              <div class="exercise-row">
+                <button class="complete-control" type="button" aria-label="Mark Cable fly complete"><i></i></button>
+                <div class="exercise-copy"><strong>Cable fly</strong><small>Meet hands at sternum</small></div>
+                <button class="measure" data-step="1.25"><strong>15</strong><small>kg</small></button>
+                <button class="measure" data-step="1"><strong>3</strong><small>sets</small></button>
+                <button class="measure" data-step="1"><strong>12</strong><small>reps</small></button>
+                <button class="drag-control row-drag" type="button" aria-label="Move Cable fly"><svg><use href="#icon-grip"/></svg></button>
+              </div>
+            </div>
+            <button class="add-exercise" type="button">+ Add exercise</button>
+          </article>
+
+          <article class="muscle-group">
+            <header><button class="drag-control" type="button" aria-label="Move Shoulders group"><svg><use href="#icon-grip"/></svg></button><div><span>Shoulders</span><small>7 working sets</small></div><button class="remove-control" type="button" aria-label="Remove Shoulders"><svg><use href="#icon-close"/></svg></button></header>
+            <div class="exercise-list">
+              <div class="exercise-row">
+                <button class="complete-control" type="button" aria-label="Mark Seated shoulder press complete"><i></i></button>
+                <div class="exercise-copy"><strong>Seated shoulder press</strong><small>Stop just short of lockout</small></div>
+                <button class="measure" data-step="1.25"><strong>22.5</strong><small>kg</small></button>
+                <button class="measure" data-step="1"><strong>4</strong><small>sets</small></button>
+                <button class="measure" data-step="1"><strong>8</strong><small>reps</small></button>
+                <button class="drag-control row-drag" type="button" aria-label="Move Seated shoulder press"><svg><use href="#icon-grip"/></svg></button>
+              </div>
+              <div class="exercise-row">
+                <button class="complete-control" type="button" aria-label="Mark Lateral raises complete"><i></i></button>
+                <div class="exercise-copy"><strong>Lateral raises</strong><small>Lead with elbows, not wrists</small></div>
+                <button class="measure" data-step="1.25"><strong>8.75</strong><small>kg</small></button>
+                <button class="measure" data-step="1"><strong>3</strong><small>sets</small></button>
+                <button class="measure" data-step="1"><strong>15</strong><small>reps</small></button>
+                <button class="drag-control row-drag" type="button" aria-label="Move Lateral raises"><svg><use href="#icon-grip"/></svg></button>
+              </div>
+            </div>
+            <button class="add-exercise" type="button">+ Add exercise</button>
+          </article>
+        </div>
+        <button class="add-group" type="button">+ Add muscle group</button>
+      </section>
+
+      <section class="view-panel workout-panel" data-panel="b" aria-labelledby="workout-b-title" hidden>
+        <div class="workout-lead">
+          <div><p class="context-line">Tuesday · Workout B</p><h1 id="workout-b-title">Pull &amp; legs</h1><p>Back, legs, and biceps with direct access to every working number.</p></div>
+          <div class="session-progress"><span><b>0</b> of 6 exercises</span><div><i style="--progress:0%"></i></div></div>
+        </div>
+        <div class="group-grid">
+          <article class="muscle-group">
+            <header><button class="drag-control" type="button" aria-label="Move Back group"><svg><use href="#icon-grip"/></svg></button><div><span>Back</span><small>11 working sets</small></div><button class="remove-control" type="button" aria-label="Remove Back"><svg><use href="#icon-close"/></svg></button></header>
+            <div class="exercise-list">
+              <div class="exercise-row"><button class="complete-control" type="button" aria-label="Complete Pull ups"><i></i></button><div class="exercise-copy"><strong>Pull ups</strong><small>Full hang between reps</small></div><button class="measure" data-step="1.25"><strong>0</strong><small>kg</small></button><button class="measure" data-step="1"><strong>4</strong><small>sets</small></button><button class="measure" data-step="1"><strong>8</strong><small>reps</small></button><button class="drag-control row-drag" type="button" aria-label="Move Pull ups"><svg><use href="#icon-grip"/></svg></button></div>
+              <div class="exercise-row"><button class="complete-control" type="button" aria-label="Complete Barbell row"><i></i></button><div class="exercise-copy"><strong>Barbell row</strong><small>Brace before every pull</small></div><button class="measure" data-step="1.25"><strong>65</strong><small>kg</small></button><button class="measure" data-step="1"><strong>4</strong><small>sets</small></button><button class="measure" data-step="1"><strong>8</strong><small>reps</small></button><button class="drag-control row-drag" type="button" aria-label="Move Barbell row"><svg><use href="#icon-grip"/></svg></button></div>
+              <div class="exercise-row"><button class="complete-control" type="button" aria-label="Complete Lat pulldown"><i></i></button><div class="exercise-copy"><strong>Lat pulldown</strong><small>Drive elbows toward pockets</small></div><button class="measure" data-step="1.25"><strong>55</strong><small>kg</small></button><button class="measure" data-step="1"><strong>3</strong><small>sets</small></button><button class="measure" data-step="1"><strong>10</strong><small>reps</small></button><button class="drag-control row-drag" type="button" aria-label="Move Lat pulldown"><svg><use href="#icon-grip"/></svg></button></div>
+            </div>
+            <button class="add-exercise" type="button">+ Add exercise</button>
+          </article>
+          <article class="muscle-group">
+            <header><button class="drag-control" type="button" aria-label="Move Legs group"><svg><use href="#icon-grip"/></svg></button><div><span>Legs</span><small>8 working sets</small></div><button class="remove-control" type="button" aria-label="Remove Legs"><svg><use href="#icon-close"/></svg></button></header>
+            <div class="exercise-list">
+              <div class="exercise-row"><button class="complete-control" type="button" aria-label="Complete Squat"><i></i></button><div class="exercise-copy"><strong>Back squat</strong><small>Controlled depth, fast ascent</small></div><button class="measure" data-step="1.25"><strong>90</strong><small>kg</small></button><button class="measure" data-step="1"><strong>4</strong><small>sets</small></button><button class="measure" data-step="1"><strong>6</strong><small>reps</small></button><button class="drag-control row-drag" type="button" aria-label="Move Squat"><svg><use href="#icon-grip"/></svg></button></div>
+              <div class="exercise-row"><button class="complete-control" type="button" aria-label="Complete Leg curl"><i></i></button><div class="exercise-copy"><strong>Leg curl</strong><small>Three-second negative</small></div><button class="measure" data-step="1.25"><strong>42.5</strong><small>kg</small></button><button class="measure" data-step="1"><strong>4</strong><small>sets</small></button><button class="measure" data-step="1"><strong>12</strong><small>reps</small></button><button class="drag-control row-drag" type="button" aria-label="Move Leg curl"><svg><use href="#icon-grip"/></svg></button></div>
+            </div>
+            <button class="add-exercise" type="button">+ Add exercise</button>
+          </article>
+        </div>
+        <button class="add-group" type="button">+ Add muscle group</button>
+      </section>
+
+      <section class="view-panel weight-panel" data-panel="weight" aria-labelledby="weight-title" hidden>
+        <div class="weight-lead"><div><p class="context-line">Body weight</p><h1 id="weight-title"><span>78</span><sup>4</sup><small>kg</small></h1><p>Down 0.8 kg across the last 18 days.</p></div><button class="primary-action" type="button" data-add-weight>+ Add today</button></div>
+        <div class="chart-stage">
+          <div class="chart-scale"><span>80</span><span>79</span><span>78</span></div>
+          <svg viewBox="0 0 720 280" role="img" aria-label="Body weight declined from 79.2 to 78.4 kilograms over eighteen days">
+            <path class="chart-grid" d="M40 40H700M40 140H700M40 240H700"/>
+            <path class="chart-area" d="M40 65 C120 45 150 94 220 99 S330 132 395 126 S505 171 565 168 S645 197 700 202 L700 240 L40 240Z"/>
+            <path class="chart-line" d="M40 65 C120 45 150 94 220 99 S330 132 395 126 S505 171 565 168 S645 197 700 202"/>
+            <g class="chart-points"><circle cx="40" cy="65" r="6"/><circle cx="220" cy="99" r="6"/><circle cx="395" cy="126" r="6"/><circle cx="565" cy="168" r="6"/><circle cx="700" cy="202" r="7"/></g>
+          </svg>
+          <div class="chart-dates"><span>Aug 12</span><span>Aug 21</span><span>Aug 30</span></div>
+        </div>
+        <div class="weight-log"><button type="button"><span>Aug 30</span><strong>78.4 kg</strong></button><button type="button"><span>Aug 26</span><strong>78.7 kg</strong></button><button type="button"><span>Aug 21</span><strong>78.9 kg</strong></button></div>
+      </section>
+
+      <section class="view-panel calendar-panel" data-panel="calendar" aria-labelledby="calendar-title" hidden>
+        <div class="calendar-lead"><div><p class="context-line">Training history</p><h1 id="calendar-title">August 2026</h1><p>6 workout days recorded this month.</p></div><button class="primary-action" type="button" data-mark-today>Mark today</button></div>
+        <div class="calendar-toolbar"><button type="button" aria-label="Previous month"><svg><use href="#icon-left"/></svg></button><strong>August 2026</strong><button type="button" disabled aria-label="Next month"><svg><use href="#icon-right"/></svg></button></div>
+        <div class="calendar-board">
+          <div class="weekdays"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+          <div class="calendar-grid" aria-label="August 2026 workout calendar">
+            <span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="empty"></span><span class="empty"></span><button type="button">1</button>
+            <button type="button" class="trained">2</button><button type="button">3</button><button type="button">4</button><button type="button" class="trained">5</button><button type="button">6</button><button type="button">7</button><button type="button">8</button>
+            <button type="button">9</button><button type="button" class="trained">10</button><button type="button">11</button><button type="button">12</button><button type="button" class="trained">13</button><button type="button">14</button><button type="button">15</button>
+            <button type="button">16</button><button type="button">17</button><button type="button" class="trained">18</button><button type="button">19</button><button type="button">20</button><button type="button">21</button><button type="button">22</button>
+            <button type="button">23</button><button type="button" class="today">24</button><button type="button" class="future">25</button><button type="button" class="future">26</button><button type="button" class="future">27</button><button type="button" class="future">28</button><button type="button" class="future">29</button>
+            <button type="button" class="future">30</button><button type="button" class="future">31</button>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="concept-note" aria-live="polite"><b>01 · Calibration</b><span>Machine-grade precision with a cool daylight field.</span></div>
+  <script src="concepts.js"></script>
+</body>
+</html>
