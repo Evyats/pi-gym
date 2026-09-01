@@ -632,8 +632,8 @@ export default function App() {
           <div><p className="eyebrow">Personal training log</p><h1>Keep showing up.</h1><p className="intro">Two workouts. Clear numbers. Your progress in one place.</p></div>
           <div className="header-actions">
             <AnimatePresence initial={false}>
-              {editing && <motion.div key="layout-tuner-button" className="header-tool" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 44 }} exit={{ opacity: 0, width: 0 }} transition={editTransition}><IconButton label="Open temporary layout tuner" aria-pressed={tuningOpen} onClick={() => setTuningOpen((current) => !current)}><SlidersHorizontal /></IconButton></motion.div>}
-              {editing && <motion.div key="theme-button" className="header-tool" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 44 }} exit={{ opacity: 0, width: 0 }} transition={editTransition}><IconButton label={`Use ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={toggleTheme}>{theme === 'light' ? <Moon /> : <Sun />}</IconButton></motion.div>}
+              {editing && <motion.div key="layout-tuner-button" className="header-tool" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 40 }} exit={{ opacity: 0, width: 0 }} transition={editTransition}><IconButton label="Open temporary layout tuner" aria-pressed={tuningOpen} onClick={() => setTuningOpen((current) => !current)}><SlidersHorizontal /></IconButton></motion.div>}
+              {editing && <motion.div key="theme-button" className="header-tool" initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 40 }} exit={{ opacity: 0, width: 0 }} transition={editTransition}><IconButton label={`Use ${theme === 'light' ? 'dark' : 'light'} mode`} aria-pressed={theme === 'dark'} onClick={toggleTheme}>{theme === 'light' ? <Moon /> : <Sun />}</IconButton></motion.div>}
             </AnimatePresence>
             <motion.button className={`edit-button ${editing ? 'is-active' : ''}`} onClick={toggleEditing}>{editing ? <><Check /> Done</> : <><Pencil /> Edit</>}</motion.button>
           </div>
