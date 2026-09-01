@@ -1,0 +1,371 @@
+:root {
+  color-scheme: light;
+  font-family: "Chivo", sans-serif;
+  font-synthesis: none;
+  --ease-out: cubic-bezier(.16, 1, .3, 1);
+}
+
+* { box-sizing: border-box; }
+html { min-width: 320px; scroll-behavior: smooth; }
+body { min-height: 100vh; margin: 0; transition: background-color .28s var(--ease-out), color .28s var(--ease-out); }
+.icon-sprite { position: absolute; width: 0; height: 0; overflow: hidden; }
+button, input { font: inherit; }
+button { cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+button:disabled { cursor: default; }
+::selection { color: var(--selection-ink); background: var(--selection); }
+* { scrollbar-color: var(--accent) var(--ground); scrollbar-width: thin; }
+
+.concept-dock {
+  position: sticky;
+  z-index: 100;
+  top: 0;
+  display: flex;
+  min-height: 50px;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  padding: 6px 18px;
+  color: #ecf0f7;
+  background: #11151c;
+  box-shadow: 0 8px 24px rgb(6 10 16 / .18);
+}
+.concept-dock__label { color: #8791a0; font: 600 10px/1 "Azeret Mono", monospace; letter-spacing: .12em; text-transform: uppercase; }
+.concept-dock__options { display: flex; gap: 4px; }
+.concept-dock button { display: flex; min-height: 36px; align-items: center; gap: 7px; border: 0; border-radius: 999px; padding: 0 13px; color: #939dac; background: transparent; }
+.concept-dock button b { font: 600 9px/1 "Azeret Mono", monospace; }
+.concept-dock button span { font-size: 12px; font-weight: 650; }
+.concept-dock button[aria-pressed="true"] { color: #11151c; background: #f4f6fa; }
+
+.app-shell { width: min(calc(100% - 32px), 1120px); margin-inline: auto; padding: 44px 0 120px; }
+.app-header { display: flex; align-items: center; gap: 22px; }
+.brand { display: inline-flex; min-width: 0; align-items: center; gap: 14px; color: inherit; text-decoration: none; }
+.brand-mark { position: relative; width: 46px; height: 42px; flex: 0 0 auto; }
+.brand-mark i { position: absolute; inset: 5px 3px 3px 5px; border: 2px solid currentColor; background: var(--ground); }
+.brand-mark i:nth-child(2) { translate: -3px 3px; }
+.brand-mark i:nth-child(3) { translate: -6px 6px; }
+.brand-copy { position: relative; z-index: 1; display: grid; gap: 2px; }
+.brand-copy small { color: var(--muted); font-size: 10px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; }
+.brand-copy strong { font-family: var(--display); font-size: clamp(24px, 3vw, 38px); letter-spacing: -.025em; line-height: .98; }
+.header-status { display: flex; align-items: center; gap: 8px; margin-left: auto; color: var(--muted); }
+.header-status strong { color: var(--text); font-family: var(--measure); font-size: 26px; font-variant-numeric: tabular-nums; }
+.header-status span { font-size: 10px; line-height: 1.2; text-transform: uppercase; }
+.edit-toggle { display: inline-flex; min-height: 44px; align-items: center; gap: 9px; border: 1px solid var(--line); border-radius: var(--control-radius); padding: 0 16px; color: var(--text); background: var(--surface); }
+.edit-toggle svg { width: 16px; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.edit-toggle span { font-size: 12px; font-weight: 750; }
+body[data-editing="true"] .edit-toggle { color: var(--action-ink); border-color: var(--accent); background: var(--accent); }
+
+.area-tabs { display: flex; gap: var(--tab-gap); margin-top: 44px; }
+.area-tabs button { position: relative; display: grid; min-width: 86px; min-height: 58px; place-items: center; align-content: center; border: 0; border-radius: var(--tab-radius); padding: 8px 16px; color: var(--muted); background: transparent; transition: color .18s ease-out, background-color .18s ease-out, transform .18s var(--ease-out), box-shadow .18s ease-out; }
+.area-tabs button b { font-family: var(--display); font-size: 22px; line-height: 1; }
+.area-tabs button span { margin-top: 3px; font-size: 9px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+.area-tabs button[aria-current="page"] { color: var(--action-ink); background: var(--accent); box-shadow: var(--active-shadow); }
+
+main { margin-top: 42px; }
+.view-panel { animation: panel-in .3s var(--ease-out) both; }
+@keyframes panel-in { from { opacity: .35; translate: 0 10px; } }
+.workout-lead, .weight-lead, .calendar-lead { display: flex; align-items: end; justify-content: space-between; gap: 28px; margin-bottom: 28px; }
+.context-line { margin: 0 0 7px; color: var(--accent); font-family: var(--measure); font-size: 10px; font-weight: 700; letter-spacing: .09em; text-transform: uppercase; }
+.workout-lead h1, .calendar-lead h1 { max-width: 14ch; margin: 0; font-family: var(--display); font-size: clamp(42px, 7vw, 76px); font-weight: 800; letter-spacing: -.035em; line-height: .9; }
+.workout-lead > div:first-child > p:last-child, .calendar-lead > div:first-child > p:last-child, .weight-lead > div > p:last-child { max-width: 58ch; margin: 13px 0 0; color: var(--muted); font-size: 13px; line-height: 1.6; }
+.session-progress { width: min(260px, 32vw); flex: 0 0 auto; }
+.session-progress > span { display: block; margin-bottom: 8px; color: var(--muted); font-size: 11px; text-align: right; }
+.session-progress span b { color: var(--text); font-family: var(--measure); }
+.session-progress > div { height: 5px; overflow: hidden; background: var(--track); }
+.session-progress i { display: block; width: var(--progress); height: 100%; background: var(--accent); }
+
+.group-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: start; gap: 22px; }
+.muscle-group { min-width: 0; border-radius: var(--card-radius); color: var(--text); background: var(--surface); box-shadow: var(--card-shadow); }
+.muscle-group > header { display: flex; min-height: 68px; align-items: center; gap: 12px; border-bottom: var(--group-rule); padding: 12px 16px; }
+.muscle-group > header > div { display: grid; gap: 2px; }
+.muscle-group > header span { font-family: var(--display); font-size: 24px; font-weight: 750; letter-spacing: -.02em; }
+.muscle-group > header small { color: var(--muted); font-size: 10px; }
+.drag-control, .remove-control { display: none; border: 0; color: var(--muted); background: transparent; }
+.drag-control { width: 32px; height: 38px; place-items: center; padding: 0; font-family: var(--measure); font-size: 19px; touch-action: none; }
+.remove-control { width: 34px; height: 34px; margin-left: auto; color: var(--danger); font-size: 22px; }
+.drag-control svg, .remove-control svg, .calendar-toolbar svg { width: 18px; height: 18px; fill: currentColor; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; stroke-width: 1.7; }
+.remove-control svg, .calendar-toolbar svg { fill: none; }
+body[data-editing="true"] .drag-control, body[data-editing="true"] .remove-control { display: grid; }
+.exercise-list { padding: var(--list-padding); }
+.exercise-row { display: grid; min-height: 66px; grid-template-columns: 28px minmax(0, 1fr) repeat(3, 48px); align-items: center; gap: 8px; border-bottom: var(--row-rule); }
+.exercise-row:last-child { border-bottom: 0; }
+.complete-control { width: 24px; height: 24px; display: grid; place-items: center; border: 1px solid var(--muted); border-radius: var(--complete-radius); padding: 0; color: var(--action-ink); background: transparent; }
+.complete-control i { width: 8px; height: 4px; border-bottom: 2px solid currentColor; border-left: 2px solid currentColor; opacity: 0; rotate: -45deg; translate: 0 -1px; }
+.exercise-row.is-complete .complete-control { border-color: var(--accent); background: var(--accent); }
+.exercise-row.is-complete .complete-control i { opacity: 1; }
+.exercise-copy { min-width: 0; display: grid; gap: 4px; }
+.exercise-copy strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.exercise-copy small { overflow: hidden; color: var(--muted); font-size: 10px; line-height: 1.25; text-overflow: ellipsis; white-space: nowrap; }
+.measure { min-width: 0; min-height: 46px; display: grid; place-content: center; border: 0; border-radius: var(--measure-radius); padding: 3px; color: var(--text); background: var(--measure-surface); font-variant-numeric: tabular-nums; }
+.measure strong { font-family: var(--measure); font-size: 13px; }
+.measure small { color: var(--muted); font-size: 8px; letter-spacing: .04em; text-transform: uppercase; }
+.row-drag { grid-column: -1; }
+body[data-editing="true"] .exercise-row { grid-template-columns: 28px minmax(0, 1fr) repeat(3, 48px) 32px; }
+.add-exercise, .add-group { display: none; border: 1px dashed var(--line); border-radius: var(--control-radius); color: var(--accent); background: transparent; font-size: 11px; font-weight: 750; }
+.add-exercise { width: calc(100% - 24px); min-height: 42px; margin: 10px 12px 12px; }
+.add-group { width: 100%; min-height: 58px; margin-top: 22px; }
+body[data-editing="true"] .add-exercise, body[data-editing="true"] .add-group { display: block; }
+
+.weight-lead h1 { display: flex; align-items: flex-start; margin: 0; font-family: var(--display); font-size: clamp(72px, 13vw, 142px); letter-spacing: -.04em; line-height: .75; }
+.weight-lead h1 sup { margin-top: .05em; font-family: var(--measure); font-size: .28em; letter-spacing: 0; }
+.weight-lead h1 small { align-self: end; margin: 0 0 .1em .35em; color: var(--muted); font-family: var(--measure); font-size: .13em; letter-spacing: .02em; text-transform: uppercase; }
+.primary-action { min-height: 48px; border: 0; border-radius: var(--control-radius); padding: 0 20px; color: var(--action-ink); background: var(--accent); font-size: 12px; font-weight: 800; }
+.chart-stage { position: relative; border-radius: var(--card-radius); padding: 28px 28px 18px 54px; background: var(--surface); box-shadow: var(--card-shadow); }
+.chart-stage svg { width: 100%; height: auto; overflow: visible; }
+.chart-grid { fill: none; stroke: var(--line); stroke-width: 1; }
+.chart-area { fill: var(--chart-fill); }
+.chart-line { fill: none; stroke: var(--accent); stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; }
+.chart-points circle { fill: var(--surface); stroke: var(--accent); stroke-width: 4; }
+.chart-scale { position: absolute; top: 33px; bottom: 35px; left: 20px; display: flex; flex-direction: column; justify-content: space-between; color: var(--muted); font: 600 9px/1 var(--measure); }
+.chart-dates { display: flex; justify-content: space-between; color: var(--muted); font: 500 9px/1 var(--measure); }
+.weight-log { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 16px; }
+.weight-log button { display: flex; min-height: 48px; align-items: center; justify-content: space-between; border: 0; border-radius: var(--control-radius); padding: 0 14px; color: var(--text); background: var(--surface); }
+.weight-log span { color: var(--muted); font-size: 9px; }
+.weight-log strong { font-family: var(--measure); font-size: 11px; }
+
+.calendar-toolbar { display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 18px; }
+.calendar-toolbar button { width: 42px; height: 42px; border: 0; border-radius: var(--control-radius); color: var(--text); background: var(--surface); }
+.calendar-toolbar button:disabled { opacity: .3; }
+.calendar-toolbar strong { min-width: 160px; font-family: var(--measure); font-size: 12px; text-align: center; }
+.calendar-board { border-radius: var(--card-radius); padding: 20px; background: var(--surface); box-shadow: var(--card-shadow); }
+.weekdays, .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); }
+.weekdays span { padding: 10px 2px; color: var(--muted); font: 600 9px/1 var(--measure); text-align: center; text-transform: uppercase; }
+.calendar-grid { gap: 5px; }
+.calendar-grid button, .calendar-grid .empty { min-height: 62px; border: 0; border-radius: var(--calendar-radius); color: var(--text); background: transparent; font-family: var(--measure); font-size: 12px; font-variant-numeric: tabular-nums; }
+.calendar-grid button:not(.future):hover { background: var(--measure-surface); }
+.calendar-grid .trained { color: var(--action-ink); background: var(--accent); }
+.calendar-grid .today { box-shadow: inset 0 0 0 2px var(--accent); }
+.calendar-grid .future { color: var(--disabled); }
+
+.concept-note { position: fixed; z-index: 90; right: 18px; bottom: 18px; display: flex; max-width: min(440px, calc(100vw - 36px)); align-items: center; gap: 12px; border-radius: 999px; padding: 9px 15px 9px 10px; color: #eff2f8; background: #11151cee; box-shadow: 0 10px 32px rgb(0 0 0 / .25); }
+.concept-note b { flex: 0 0 auto; border-radius: 999px; padding: 7px 10px; color: #11151c; background: #f5f7fa; font-size: 10px; }
+.concept-note span { color: #a8b1be; font-size: 10px; line-height: 1.35; }
+
+/* 01 — precision calibration plate */
+body[data-concept="calibration"] {
+  --ground: #edf0e8;
+  --surface: #f9faf6;
+  --measure-surface: #e2e6dc;
+  --text: #101927;
+  --muted: #657080;
+  --disabled: #aeb5b5;
+  --accent: #175cdb;
+  --action-ink: #fff;
+  --danger: #c1322f;
+  --line: #c7cec6;
+  --track: #d5dbd3;
+  --chart-fill: rgb(23 92 219 / .09);
+  --focus: #e84a2e;
+  --selection: #175cdb;
+  --selection-ink: #fff;
+  --display: "Saira Condensed", sans-serif;
+  --measure: "Azeret Mono", monospace;
+  --control-radius: 3px;
+  --tab-radius: 3px;
+  --card-radius: 4px;
+  --calendar-radius: 2px;
+  --complete-radius: 2px;
+  --measure-radius: 2px;
+  --tab-gap: 5px;
+  --list-padding: 7px 14px 10px;
+  --group-rule: 1px solid var(--line);
+  --row-rule: 1px solid var(--line);
+  --card-shadow: 0 14px 36px rgb(31 43 35 / .07);
+  --active-shadow: 0 8px 22px rgb(23 92 219 / .18);
+  color: var(--text);
+  background: var(--ground);
+}
+body[data-concept="calibration"] .brand-mark { color: var(--accent); }
+body[data-concept="calibration"] .brand-mark i:first-child { background: var(--accent); }
+body[data-concept="calibration"] .area-tabs { border-top: 1px solid var(--line); padding-top: 14px; }
+body[data-concept="calibration"] .area-tabs::before { align-self: center; margin-right: auto; color: var(--muted); content: "SELECT MODULE"; font: 600 9px/1 var(--measure); letter-spacing: .12em; }
+body[data-concept="calibration"] .muscle-group > header::after { margin-left: auto; color: var(--muted); content: "CAL"; font: 600 8px/1 var(--measure); }
+body[data-concept="calibration"][data-editing="true"] .muscle-group > header::after { display: none; }
+
+/* 02 — coach's field card */
+body[data-concept="field"] {
+  --ground: #342c54;
+  --surface: #f5f0df;
+  --measure-surface: #e8e1cb;
+  --text: #241f32;
+  --page-text: #fff8e8;
+  --muted: #746b76;
+  --disabled: #aba2af;
+  --accent: #d7f344;
+  --action-ink: #1d2630;
+  --danger: #bf3c49;
+  --line: #cfc5ad;
+  --track: rgb(255 255 255 / .2);
+  --chart-fill: rgb(215 243 68 / .18);
+  --focus: #ff6b57;
+  --selection: #d7f344;
+  --selection-ink: #241f32;
+  --display: "Chivo", sans-serif;
+  --measure: "Azeret Mono", monospace;
+  --control-radius: 14px;
+  --tab-radius: 12px;
+  --card-radius: 14px;
+  --calendar-radius: 10px;
+  --complete-radius: 50%;
+  --measure-radius: 9px;
+  --tab-gap: 7px;
+  --list-padding: 7px 14px 12px;
+  --group-rule: 0;
+  --row-rule: 0;
+  --card-shadow: 0 18px 42px rgb(16 12 30 / .25);
+  --active-shadow: 0 10px 28px rgb(215 243 68 / .16);
+  color: var(--page-text);
+  background: var(--ground);
+}
+body[data-concept="field"] .app-shell { display: grid; grid-template-columns: 128px minmax(0, 1fr); column-gap: 34px; }
+body[data-concept="field"] .app-header { grid-column: 1 / -1; }
+body[data-concept="field"] .brand-mark { color: var(--accent); }
+body[data-concept="field"] .brand-mark i { border-width: 0; border-radius: 8px; background: var(--accent); }
+body[data-concept="field"] .brand-mark i:nth-child(2) { opacity: .55; }
+body[data-concept="field"] .brand-mark i:nth-child(3) { opacity: .25; }
+body[data-concept="field"] .brand-copy small, body[data-concept="field"] .header-status { color: #c5bbd0; }
+body[data-concept="field"] .header-status strong { color: var(--page-text); }
+body[data-concept="field"] .edit-toggle { color: var(--page-text); border-color: rgb(255 255 255 / .2); background: rgb(255 255 255 / .06); }
+body[data-concept="field"] .area-tabs { grid-column: 1; display: grid; align-self: start; gap: 9px; margin-top: 68px; }
+body[data-concept="field"] .area-tabs button { min-width: 0; min-height: 68px; justify-items: start; padding: 11px 14px; }
+body[data-concept="field"] .area-tabs button b { font-size: 24px; }
+body[data-concept="field"] main { grid-column: 2; min-width: 0; margin-top: 68px; }
+body[data-concept="field"] .workout-lead h1, body[data-concept="field"] .calendar-lead h1 { color: var(--page-text); font-size: clamp(44px, 7vw, 70px); }
+body[data-concept="field"] .workout-lead > div:first-child > p:last-child, body[data-concept="field"] .calendar-lead > div:first-child > p:last-child, body[data-concept="field"] .weight-lead > div > p:last-child { color: #c8bfd2; }
+body[data-concept="field"] .session-progress { color: var(--page-text); }
+body[data-concept="field"] .session-progress > span, body[data-concept="field"] .session-progress span b { color: var(--page-text); }
+body[data-concept="field"] .group-grid { grid-template-columns: 1fr; }
+body[data-concept="field"] .muscle-group > header { padding: 15px 20px 5px; }
+body[data-concept="field"] .muscle-group > header span { font-size: 22px; }
+body[data-concept="field"] .exercise-row { border-radius: 10px; padding: 4px 6px; }
+body[data-concept="field"] .exercise-row:hover { background: #eee8d5; }
+body[data-concept="field"] .weight-lead h1 { color: var(--page-text); }
+body[data-concept="field"] .weight-lead h1 small { color: #c8bfd2; }
+body[data-concept="field"] .chart-stage, body[data-concept="field"] .calendar-board { color: var(--text); }
+body[data-concept="field"] .calendar-toolbar { color: var(--page-text); }
+body[data-concept="field"] .calendar-toolbar button { color: var(--page-text); background: rgb(255 255 255 / .08); }
+body[data-concept="field"] .weight-log button { color: var(--page-text); background: rgb(255 255 255 / .08); }
+body[data-concept="field"] .weight-log span { color: #c8bfd2; }
+
+/* 03 — cathode instrument */
+body[data-concept="cathode"] {
+  color-scheme: dark;
+  --ground: #090e18;
+  --surface: transparent;
+  --measure-surface: transparent;
+  --text: #f1d6ae;
+  --muted: #8a725c;
+  --disabled: #413a37;
+  --accent: #ff7a1a;
+  --action-ink: #160d08;
+  --danger: #ff5d4a;
+  --line: rgb(210 150 88 / .2);
+  --track: rgb(210 150 88 / .16);
+  --chart-fill: rgb(255 122 26 / .06);
+  --focus: #ffd09c;
+  --selection: #ff7a1a;
+  --selection-ink: #090e18;
+  --display: "Saira Condensed", sans-serif;
+  --measure: "Azeret Mono", monospace;
+  --control-radius: 2px;
+  --tab-radius: 2px;
+  --card-radius: 0;
+  --calendar-radius: 0;
+  --complete-radius: 0;
+  --measure-radius: 0;
+  --tab-gap: 18px;
+  --list-padding: 0;
+  --group-rule: 0;
+  --row-rule: 0;
+  --card-shadow: none;
+  --active-shadow: 0 0 24px rgb(255 122 26 / .24);
+  color: var(--text);
+  background-color: var(--ground);
+  background-image: repeating-linear-gradient(90deg, transparent 0 5px, rgb(170 112 58 / .025) 5px 6px), repeating-linear-gradient(0deg, transparent 0 5px, rgb(170 112 58 / .02) 5px 6px);
+}
+body[data-concept="cathode"] .app-shell { width: min(calc(100% - 40px), 940px); }
+body[data-concept="cathode"] .brand-mark { color: var(--accent); filter: drop-shadow(0 0 9px rgb(255 122 26 / .4)); }
+body[data-concept="cathode"] .brand-mark i { background: transparent; }
+body[data-concept="cathode"] .brand-copy strong { color: var(--accent); text-shadow: 0 0 18px rgb(255 122 26 / .25); }
+body[data-concept="cathode"] .edit-toggle { color: var(--muted); border-color: transparent; background: transparent; }
+body[data-concept="cathode"] .edit-toggle:hover { color: var(--accent); }
+body[data-concept="cathode"] .area-tabs { justify-content: space-between; }
+body[data-concept="cathode"] .area-tabs button { min-width: 0; min-height: 72px; overflow: visible; padding: 5px 7px; }
+body[data-concept="cathode"] .area-tabs button b { position: relative; color: var(--muted); font-family: var(--measure); font-size: 30px; font-weight: 500; }
+body[data-concept="cathode"] .area-tabs button b::before, body[data-concept="cathode"] .area-tabs button b::after { position: absolute; inset: 0; color: var(--accent); opacity: .08; content: attr(data-ghost); translate: -3px 3px; }
+body[data-concept="cathode"] .area-tabs button[aria-current="page"] { color: var(--accent); background: transparent; }
+body[data-concept="cathode"] .area-tabs button[aria-current="page"] b { color: var(--accent); text-shadow: 0 0 15px rgb(255 122 26 / .42); }
+body[data-concept="cathode"] .workout-lead { align-items: start; }
+body[data-concept="cathode"] .workout-lead h1, body[data-concept="cathode"] .calendar-lead h1 { color: var(--text); font-size: clamp(54px, 9vw, 92px); font-weight: 600; }
+body[data-concept="cathode"] .context-line { color: var(--accent); }
+body[data-concept="cathode"] .group-grid { grid-template-columns: 1fr; gap: 42px; }
+body[data-concept="cathode"] .muscle-group { background: transparent; }
+body[data-concept="cathode"] .muscle-group > header { min-height: 44px; padding: 0; }
+body[data-concept="cathode"] .muscle-group > header span { color: var(--accent); font-family: var(--measure); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; }
+body[data-concept="cathode"] .exercise-row { min-height: 76px; grid-template-columns: 32px minmax(0, 1fr) repeat(3, 62px); gap: 14px; }
+body[data-concept="cathode"] .exercise-copy strong { color: var(--text); font-family: var(--measure); font-size: 13px; font-weight: 500; }
+body[data-concept="cathode"] .measure { position: relative; min-height: 58px; color: var(--accent); text-shadow: 0 0 13px rgb(255 122 26 / .4); }
+body[data-concept="cathode"] .measure::before { position: absolute; z-index: -1; inset: 50% 0 auto; color: var(--muted); opacity: .1; content: "00\A 25\A 50"; font: 600 11px/.75 var(--measure); white-space: pre; translate: 0 -50%; }
+body[data-concept="cathode"] .measure strong { font-size: 17px; }
+body[data-concept="cathode"] .complete-control { border-color: var(--muted); }
+body[data-concept="cathode"] .chart-stage, body[data-concept="cathode"] .calendar-board { background: transparent; }
+body[data-concept="cathode"] .chart-line { filter: drop-shadow(0 0 7px rgb(255 122 26 / .42)); }
+body[data-concept="cathode"] .weight-log button { border-top: 1px solid var(--line); border-radius: 0; background: transparent; }
+body[data-concept="cathode"] .calendar-toolbar button { background: transparent; }
+body[data-concept="cathode"] .calendar-grid { gap: 9px; }
+body[data-concept="cathode"] .calendar-grid .trained { box-shadow: 0 0 18px rgb(255 122 26 / .28); }
+
+@media (max-width: 760px) {
+  .concept-dock { justify-content: space-between; gap: 8px; padding-inline: 10px; }
+  .concept-dock__label { display: none; }
+  .concept-dock__options { width: 100%; }
+  .concept-dock button { flex: 1; justify-content: center; padding-inline: 7px; }
+  .concept-dock button span { font-size: 10px; }
+  .app-shell, body[data-concept="cathode"] .app-shell { width: calc(100% - 24px); padding-top: 24px; }
+  .app-header { gap: 10px; }
+  .brand { gap: 9px; }
+  .brand-mark { width: 36px; height: 34px; }
+  .brand-copy small, .header-status { display: none; }
+  .brand-copy strong { font-size: 24px; }
+  .edit-toggle { width: 42px; min-height: 42px; justify-content: center; padding: 0; }
+  .edit-toggle span { display: none; }
+  .area-tabs { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 28px; }
+  .area-tabs button { min-width: 0; min-height: 52px; padding: 6px; }
+  body[data-concept="calibration"] .area-tabs::before { display: none; }
+  main { margin-top: 30px; }
+  .workout-lead, .weight-lead, .calendar-lead { align-items: start; flex-direction: column; gap: 20px; }
+  .workout-lead h1, .calendar-lead h1, body[data-concept="field"] .workout-lead h1, body[data-concept="field"] .calendar-lead h1, body[data-concept="cathode"] .workout-lead h1, body[data-concept="cathode"] .calendar-lead h1 { font-size: 50px; }
+  .session-progress { width: 100%; }
+  .group-grid { grid-template-columns: 1fr; gap: 16px; }
+  .exercise-row, body[data-concept="cathode"] .exercise-row { min-height: 70px; grid-template-columns: 26px minmax(82px, 1fr) repeat(3, 42px); gap: 6px; }
+  body[data-editing="true"] .exercise-row { grid-template-columns: 26px minmax(70px, 1fr) repeat(3, 40px) 28px; }
+  .exercise-copy small { white-space: normal; }
+  .measure strong { font-size: 11px; }
+  .weight-lead h1 { font-size: 88px; }
+  .chart-stage { padding: 18px 12px 14px 34px; }
+  .chart-scale { left: 10px; }
+  .weight-log { grid-template-columns: 1fr; }
+  .calendar-board { padding: 8px; }
+  .calendar-grid { gap: 3px; }
+  .calendar-grid button, .calendar-grid .empty { min-height: 43px; }
+  .concept-note { display: none; }
+  body[data-concept="field"] .app-shell { display: block; }
+  body[data-concept="field"] .area-tabs { display: grid; margin-top: 28px; }
+  body[data-concept="field"] .area-tabs button { min-height: 54px; justify-items: center; padding: 6px; }
+  body[data-concept="field"] main { margin-top: 30px; }
+  body[data-concept="cathode"] .area-tabs { gap: 2px; }
+  body[data-concept="cathode"] .area-tabs button { min-height: 58px; }
+  body[data-concept="cathode"] .area-tabs button b { font-size: 24px; }
+}
+
+@media (max-width: 390px) {
+  .concept-dock button b { display: none; }
+  .exercise-row, body[data-concept="cathode"] .exercise-row { grid-template-columns: 24px minmax(68px, 1fr) repeat(3, 39px); gap: 4px; }
+  body[data-editing="true"] .exercise-row { grid-template-columns: 24px minmax(62px, 1fr) repeat(3, 37px) 26px; }
+  .muscle-group > header { padding-inline: 10px; }
+  .exercise-list { padding-inline: 8px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}

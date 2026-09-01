@@ -77,6 +77,13 @@ const CALENDAR_MARK_STYLES = [
   { value: 'tint', label: 'Soft tint' },
 ]
 
+const WORKOUT_TABS = [
+  { key: 'A', label: 'Push' },
+  { key: 'B', label: 'Pull' },
+  { key: 'W', label: 'Weight' },
+  { key: 'C', label: 'Calendar' },
+]
+
 const LAYOUT_CONTROLS = [
   { key: 'contentWidth', label: 'Content width', min: 760, max: 1240, step: 20, unit: 'px' },
   { key: 'pageGutter', label: 'Page gutter', min: 16, max: 64, step: 2, unit: 'px' },
@@ -636,7 +643,35 @@ export default function App() {
         <section className="workout-section">
           <div className="workout-nav">
             <p className="workout-meta"><strong>{isCalendarTab ? `${workoutDays.length} workout days` : isWeightTab ? `${weights.length} measurements` : `${exerciseCount} exercises`}</strong><span>{isCalendarTab ? 'Your training history' : isWeightTab ? (weights.length ? `${displayDate(weights[0].date)} · ${displayDate(weights.at(-1).date)}` : 'No measurements yet') : groupNames}</span></p>
-            <div className="workout-tabs" role="tablist" aria-label="Training, weight, and calendar sections">{['A', 'B', 'W', 'C'].map((key) => <button key={key} role="tab" aria-selected={workoutKey === key} className={workoutKey === key ? 'is-active' : ''} onClick={() => { setWorkoutKey(key); setEditing(false); setTuningOpen(false) }}><span>{key === 'W' ? 'Weight' : key === 'C' ? 'Calendar' : 'Workout'}</span> {key}</button>)}</div>
+            <div className="workout-tabs" role="tablist" aria-label="Training, weight, and calendar sections">
+              {WORKOUT_TABS.map((tab) => {
+                const active = workoutKey === tab.key
+                return (
+                  <button
+                    key={tab.key}
+                    type="button"
+                    role="tab"
+                    aria-label={`${tab.key} ${tab.label}`}
+                    aria-selected={active}
+                    className={active ? 'is-active' : ''}
+                    onClick={() => { setWorkoutKey(tab.key); setEditing(false); setTuningOpen(false) }}
+                  >
+                    {active && (
+                      <motion.i
+                        className="workout-tab-selection"
+                        layoutId="workout-tab-selection"
+                        aria-hidden="true"
+                        transition={reduceMotion
+                          ? { duration: 0 }
+                          : { type: 'spring', stiffness: 500, damping: 38, mass: .7 }}
+                      />
+                    )}
+                    <b>{tab.key}</b>
+                    <span>{tab.label}</span>
+                  </button>
+                )
+              })}
+            </div>
           </div>
           <AnimatePresence mode="wait" initial={false}>
             {isCalendarTab ? (
